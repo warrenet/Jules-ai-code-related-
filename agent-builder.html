@@ -101,30 +101,52 @@
 
 <div class="flex w-full h-full">
     <!-- Toolbox (Left Sidebar) -->
-    <aside id="toolbox" class="w-full md:w-72 lg:w-80 bg-gray-800/50 p-4 border-r border-gray-700/50 overflow-y-auto">
-        <h2 class="text-xl font-bold text-white mb-4">
-            <i class="fas fa-cubes mr-2"></i>Component Blocks
-        </h2>
-        <p class="text-xs text-gray-400 mb-6">Drag these blocks onto the canvas to build your agent's instructions.</p>
-        <div class="space-y-3">
-            <!-- Draggable Items -->
-            <div class="toolbox-item bg-blue-600/20 border border-blue-500/50 rounded-lg p-3 shadow-md cursor-grab active:cursor-grabbing" draggable="true" data-type="persona" data-title="Persona / Role" data-icon="fa-user-astronaut" data-placeholder="Define the agent's core identity. E.g., 'You are a helpful assistant specialized in creative writing.'">
-                <h3 class="font-semibold"><i class="fas fa-user-astronaut mr-2 text-blue-400"></i>Persona / Role</h3>
+    <aside id="toolbox" class="w-full md:w-72 lg:w-80 bg-gray-800/50 flex flex-col border-r border-gray-700/50">
+        <!-- Tab Buttons -->
+        <div class="flex border-b border-gray-700/50">
+            <button class="toolbox-tab-btn flex-1 py-2 px-4 text-sm font-semibold transition-colors border-b-2" data-tab="blocks"><i class="fas fa-cubes mr-2"></i>Blocks</button>
+            <button class="toolbox-tab-btn flex-1 py-2 px-4 text-sm font-semibold transition-colors border-b-2" data-tab="variables"><i class="fas fa-at mr-2"></i>Variables</button>
+        </div>
+
+        <div class="flex-grow p-4 overflow-y-auto">
+            <!-- Blocks Tab Content -->
+            <div id="blocks-tab-content" class="toolbox-tab-content">
+                <p class="text-xs text-gray-400 mb-6">Drag these blocks onto the canvas to build your agent's instructions.</p>
+                <div class="space-y-3">
+                    <!-- Draggable Items -->
+                    <div class="toolbox-item bg-blue-600/20 border border-blue-500/50 rounded-lg p-3 shadow-md cursor-grab active:cursor-grabbing" draggable="true" data-type="persona" data-title="Persona / Role" data-icon="fa-user-astronaut" data-placeholder="Define the agent's core identity. E.g., 'You are a helpful assistant specialized in creative writing.'">
+                        <h3 class="font-semibold"><i class="fas fa-user-astronaut mr-2 text-blue-400"></i>Persona / Role</h3>
+                    </div>
+                    <div class="toolbox-item bg-green-600/20 border border-green-500/50 rounded-lg p-3 shadow-md cursor-grab active:cursor-grabbing" draggable="true" data-type="goal" data-title="Primary Goal" data-icon="fa-bullseye" data-placeholder="Describe the agent's main objective. E.g., 'Your primary goal is to help users brainstorm ideas for their novels.'">
+                        <h3 class="font-semibold"><i class="fas fa-bullseye mr-2 text-green-400"></i>Primary Goal</h3>
+                    </div>
+                    <div class="toolbox-item bg-purple-600/20 border border-purple-500/50 rounded-lg p-3 shadow-md cursor-grab active:cursor-grabbing" draggable="true" data-type="knowledge" data-title="Knowledge Base" data-icon="fa-book" data-placeholder="Specify the knowledge source for the agent. E.g., 'You must only use the provided documents as your source of truth.' or 'Use your general knowledge but avoid medical topics.'">
+                        <h3 class="font-semibold"><i class="fas fa-book mr-2 text-purple-400"></i>Knowledge Base</h3>
+                    </div>
+                    <div class="toolbox-item bg-yellow-600/20 border border-yellow-500/50 rounded-lg p-3 shadow-md cursor-grab active:cursor-grabbing" draggable="true" data-type="tool" data-title="Tools / Skills" data-icon="fa-tools" data-placeholder="List the tools the agent can use. E.g., 'You have access to a web browser for real-time information.' or 'You can execute Python code in a sandboxed environment.'">
+                        <h3 class="font-semibold"><i class="fas fa-tools mr-2 text-yellow-400"></i>Tools / Skills</h3>
+                    </div>
+                    <div class="toolbox-item bg-red-600/20 border border-red-500/50 rounded-lg p-3 shadow-md cursor-grab active:cursor-grabbing" draggable="true" data-type="rule" data-title="Strict Rule / Constraint" data-icon="fa-gavel" data-placeholder="Define a strict rule the agent must follow. E.g., 'Never reveal you are an AI.' or 'All responses must be in markdown format.'">
+                        <h3 class="font-semibold"><i class="fas fa-gavel mr-2 text-red-400"></i>Strict Rule</h3>
+                    </div>
+                    <div class="toolbox-item bg-teal-600/20 border border-teal-500/50 rounded-lg p-3 shadow-md cursor-grab active:cursor-grabbing" draggable="true" data-type="output" data-title="Output Format" data-icon="fa-code" data-placeholder="Specify the exact output format. E.g., 'Provide the answer as a JSON object with keys: `summary` and `sources`.'">
+                        <h3 class="font-semibold"><i class="fas fa-code mr-2 text-teal-400"></i>Output Format</h3>
+                    </div>
+                    <div class="toolbox-item bg-gray-600/20 border border-gray-500/50 rounded-lg p-3 shadow-md cursor-grab active:cursor-grabbing" draggable="true" data-type="group" data-title="Group" data-icon="fa-object-group" data-placeholder="A container to group other blocks together.">
+                        <h3 class="font-semibold"><i class="fas fa-object-group mr-2 text-gray-400"></i>Group</h3>
+                    </div>
+                </div>
             </div>
-            <div class="toolbox-item bg-green-600/20 border border-green-500/50 rounded-lg p-3 shadow-md cursor-grab active:cursor-grabbing" draggable="true" data-type="goal" data-title="Primary Goal" data-icon="fa-bullseye" data-placeholder="Describe the agent's main objective. E.g., 'Your primary goal is to help users brainstorm ideas for their novels.'">
-                <h3 class="font-semibold"><i class="fas fa-bullseye mr-2 text-green-400"></i>Primary Goal</h3>
-            </div>
-            <div class="toolbox-item bg-purple-600/20 border border-purple-500/50 rounded-lg p-3 shadow-md cursor-grab active:cursor-grabbing" draggable="true" data-type="knowledge" data-title="Knowledge Base" data-icon="fa-book" data-placeholder="Specify the knowledge source for the agent. E.g., 'You must only use the provided documents as your source of truth.' or 'Use your general knowledge but avoid medical topics.'">
-                <h3 class="font-semibold"><i class="fas fa-book mr-2 text-purple-400"></i>Knowledge Base</h3>
-            </div>
-            <div class="toolbox-item bg-yellow-600/20 border border-yellow-500/50 rounded-lg p-3 shadow-md cursor-grab active:cursor-grabbing" draggable="true" data-type="tool" data-title="Tools / Skills" data-icon="fa-tools" data-placeholder="List the tools the agent can use. E.g., 'You have access to a web browser for real-time information.' or 'You can execute Python code in a sandboxed environment.'">
-                <h3 class="font-semibold"><i class="fas fa-tools mr-2 text-yellow-400"></i>Tools / Skills</h3>
-            </div>
-            <div class="toolbox-item bg-red-600/20 border border-red-500/50 rounded-lg p-3 shadow-md cursor-grab active:cursor-grabbing" draggable="true" data-type="rule" data-title="Strict Rule / Constraint" data-icon="fa-gavel" data-placeholder="Define a strict rule the agent must follow. E.g., 'Never reveal you are an AI.' or 'All responses must be in markdown format.'">
-                <h3 class="font-semibold"><i class="fas fa-gavel mr-2 text-red-400"></i>Strict Rule</h3>
-            </div>
-            <div class="toolbox-item bg-teal-600/20 border border-teal-500/50 rounded-lg p-3 shadow-md cursor-grab active:cursor-grabbing" draggable="true" data-type="output" data-title="Output Format" data-icon="fa-code" data-placeholder="Specify the exact output format. E.g., 'Provide the answer as a JSON object with keys: `summary` and `sources`.'">
-                <h3 class="font-semibold"><i class="fas fa-code mr-2 text-teal-400"></i>Output Format</h3>
+
+            <!-- Variables Tab Content -->
+            <div id="variables-tab-content" class="toolbox-tab-content hidden">
+                <p class="text-xs text-gray-400 mb-4">Define reusable variables to use in your blocks with `{{variable_name}}` syntax.</p>
+                <div id="variables-container" class="space-y-3">
+                    <!-- Variable rows will be added here by JS -->
+                </div>
+                <button id="add-variable-btn" class="w-full mt-4 bg-green-600/20 hover:bg-green-600/40 text-white font-bold py-2 px-4 rounded-md transition-colors border border-green-500/50">
+                    <i class="fas fa-plus mr-2"></i>Add Variable
+                </button>
             </div>
         </div>
     </aside>
@@ -181,8 +203,33 @@
                 <i class="fas fa-copy mr-1"></i> Copy
             </button>
         </div>
-        <div class="mt-4 flex justify-end">
-            <button id="prompt-done-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-colors">Done</button>
+        <div class="mt-4 flex justify-between items-center">
+            <button id="playground-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md transition-colors"><i class="fas fa-vial mr-2"></i>Test in Playground</button>
+            <button id="prompt-done-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md transition-colors">Done</button>
+        </div>
+    </div>
+</div>
+
+<!-- Playground Modal -->
+<div id="playground-modal-backdrop" class="modal-backdrop"></div>
+<div id="playground-modal" class="modal w-11/12 md:w-3/4 max-w-5xl bg-gray-800 rounded-lg shadow-2xl border border-gray-700 flex flex-col" style="height: 90vh;">
+    <div class="p-4 border-b border-gray-700">
+        <div class="flex justify-between items-center">
+            <h2 class="text-xl font-bold text-white"><i class="fas fa-vial mr-2"></i>Agent Playground</h2>
+            <button id="close-playground-modal-btn" class="text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
+        </div>
+        <div class="mt-2">
+            <label for="api-key-input" class="text-sm text-gray-400">Google Gemini API Key:</label>
+            <input id="api-key-input" type="password" placeholder="Enter your API key here" class="w-full mt-1 bg-gray-900 border border-gray-600 rounded-md p-2 text-sm focus:ring-1 focus:ring-blue-500">
+        </div>
+    </div>
+    <div id="playground-chat-area" class="flex-1 p-4 overflow-y-auto space-y-4">
+        <!-- Chat messages will appear here -->
+    </div>
+    <div class="p-4 border-t border-gray-700">
+        <div class="flex items-center space-x-2">
+            <textarea id="playground-input" placeholder="Type your message..." class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:ring-1 focus:ring-blue-500 resize-none" rows="1"></textarea>
+            <button id="playground-send-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-colors"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
 </div>
@@ -251,6 +298,17 @@
                 <!-- Content will be added by JS -->
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Command Palette Modal -->
+<div id="command-palette-backdrop" class="modal-backdrop"></div>
+<div id="command-palette-modal" class="modal w-11/12 md:w-1/2 max-w-2xl bg-gray-800 rounded-lg shadow-2xl border border-gray-700 flex flex-col" style="height: 60vh;">
+    <div class="p-2 border-b border-gray-700">
+        <input id="command-palette-input" type="text" placeholder="Type a command or search..." class="w-full bg-transparent text-white placeholder-gray-400 focus:outline-none p-2">
+    </div>
+    <div id="command-palette-results" class="flex-1 overflow-y-auto p-2">
+        <!-- Search results will be populated here -->
     </div>
 </div>
 

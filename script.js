@@ -137,7 +137,7 @@ const updateCanvasPlaceholder = () => {
 };
 
 const createBlockElement = (blockData) => {
-    const { id, type, title, icon, content } = blockData;
+    const { id, type, title, icon, content, blocks } = blockData;
 
     const div = document.createElement('div');
     div.className = `canvas-item bg-gray-800/80 border border-gray-700 rounded-lg p-4 shadow-lg flex items-start space-x-4`;
@@ -145,31 +145,59 @@ const createBlockElement = (blockData) => {
     div.dataset.type = type;
     div.dataset.title = title;
     div.dataset.icon = icon;
-    // draggable property is no longer needed, SortableJS handles it.
 
-    div.innerHTML = `
-        <i class="fas ${icon} text-xl text-gray-400 pt-1 cursor-grab active:cursor-grabbing"></i>
-        <div class="flex-1 overflow-hidden">
-            <div class="flex justify-between items-center">
-                <h3 class="font-bold text-white">${title}</h3>
-                <div class="flex items-center space-x-2">
-                    <button class="collapse-btn text-gray-400 hover:text-white transition-colors w-6 h-6 flex items-center justify-center"><i class="fas fa-chevron-up"></i></button>
-                    <button class="edit-btn text-gray-400 hover:text-blue-400 transition-colors w-6 h-6 flex items-center justify-center"><i class="fas fa-pencil-alt"></i></button>
-                    <button class="delete-btn text-gray-400 hover:text-red-400 transition-colors w-6 h-6 flex items-center justify-center"><i class="fas fa-trash-alt"></i></button>
+    if (type === 'group') {
+        div.innerHTML = `
+            <i class="fas ${icon} text-xl text-gray-400 pt-1 cursor-grab active:cursor-grabbing"></i>
+            <div class="flex-1 overflow-hidden">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-white">${title}</h3>
+                    <div class="flex items-center space-x-2">
+                        <button class="collapse-btn text-gray-400 hover:text-white transition-colors w-6 h-6 flex items-center justify-center"><i class="fas fa-chevron-up"></i></button>
+                        <button class="delete-btn text-gray-400 hover:text-red-400 transition-colors w-6 h-6 flex items-center justify-center"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                </div>
+                <div class="collapsible-content">
+                    <div class="group-container min-h-[50px] bg-gray-900/50 mt-2 p-2 rounded-md border border-dashed border-gray-600 space-y-2">
+                        <!-- Nested blocks go here -->
+                    </div>
                 </div>
             </div>
-            <div class="collapsible-content">
-                <p class="content-preview text-sm text-gray-300 mt-2 pr-2">${content || 'Click to configure...'}</p>
+        `;
+        const groupContainer = div.querySelector('.group-container');
+        new Sortable(groupContainer, {
+            group: 'shared',
+            animation: 150,
+            onAdd: () => recordCanvasChange(() => {}),
+            onEnd: () => recordCanvasChange(() => {})
+        });
+        if (blocks) {
+            blocks.forEach(childBlockData => {
+                groupContainer.appendChild(createBlockElement(childBlockData));
+            });
+        }
+    } else {
+        div.innerHTML = `
+            <i class="fas ${icon} text-xl text-gray-400 pt-1 cursor-grab active:cursor-grabbing"></i>
+            <div class="flex-1 overflow-hidden">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-white">${title}</h3>
+                    <div class="flex items-center space-x-2">
+                        <button class="collapse-btn text-gray-400 hover:text-white transition-colors w-6 h-6 flex items-center justify-center"><i class="fas fa-chevron-up"></i></button>
+                        <button class="edit-btn text-gray-400 hover:text-blue-400 transition-colors w-6 h-6 flex items-center justify-center"><i class="fas fa-pencil-alt"></i></button>
+                        <button class="delete-btn text-gray-400 hover:text-red-400 transition-colors w-6 h-6 flex items-center justify-center"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                </div>
+                <div class="collapsible-content">
+                    <p class="content-preview text-sm text-gray-300 mt-2 pr-2">${content || 'Click to configure...'}</p>
+                </div>
             </div>
-        </div>
-    `;
-    // Store content in a data attribute for easy access
-    div.dataset.content = content || '';
-    div.dataset.placeholder = blockData.placeholder || 'Enter your instructions here...';
+        `;
+        div.dataset.content = content || '';
+        div.dataset.placeholder = blockData.placeholder || 'Enter your instructions here...';
+        div.querySelector('.edit-btn').addEventListener('click', () => openEditModal(div));
+    }
 
-
-    // Attach event listeners to the new block
-    div.querySelector('.edit-btn').addEventListener('click', () => openEditModal(div));
     div.querySelector('.delete-btn').addEventListener('click', () => {
         recordCanvasChange(() => {
             div.remove();
@@ -177,10 +205,9 @@ const createBlockElement = (blockData) => {
         });
     });
     div.querySelector('.collapse-btn').addEventListener('click', () => {
-        const block = div;
-        const icon = block.querySelector('.collapse-btn i');
-        block.classList.toggle('is-collapsed');
-        if (block.classList.contains('is-collapsed')) {
+        const icon = div.querySelector('.collapse-btn i');
+        div.classList.toggle('is-collapsed');
+        if (div.classList.contains('is-collapsed')) {
             icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
         } else {
             icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
@@ -304,16 +331,43 @@ const showSavePrompt = (onSave) => {
 };
 
 
+const getVariables = () => {
+    const variables = {};
+    const rows = document.querySelectorAll('#variables-container .flex');
+    rows.forEach(row => {
+        const keyInput = row.querySelector('.variable-key');
+        const valueInput = row.querySelector('.variable-value');
+        const key = keyInput.value.trim();
+        if (key) {
+            variables[key] = valueInput.value;
+        }
+    });
+    return variables;
+};
+
 const generatePrompt = () => {
     const blocks = canvas.querySelectorAll('.canvas-item');
     if (blocks.length === 0) {
         showToast("Canvas is empty! Add some blocks first.", "error");
         return;
     }
+
+    const variables = getVariables();
+    const substituteVariables = (text) => {
+        let substitutedText = text;
+        for (const [key, value] of Object.entries(variables)) {
+            // Use a regex to replace all occurrences of {{key}}
+            const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
+            substitutedText = substitutedText.replace(regex, value);
+        }
+        return substitutedText;
+    };
+
     let promptText = "### AGENT CONFIGURATION ###\n\n";
     blocks.forEach(block => {
         const title = block.dataset.title.toUpperCase();
-        const content = block.dataset.content || 'Not configured.';
+        let content = block.dataset.content || 'Not configured.';
+        content = substituteVariables(content); // Substitute variables here
         promptText += `## ${title} ##\n${content}\n\n`;
     });
     promptOutput.textContent = promptText.trim();
@@ -370,17 +424,25 @@ const initDragAndDrop = () => {
 };
 
 // --- Firestore Persistence ---
-const getAgentDataFromCanvas = () => {
+const getAgentDataFromCanvas = (rootElement = canvas) => {
     const blocks = [];
-    canvas.querySelectorAll('.canvas-item').forEach(el => {
-        blocks.push({
+    // Use :scope to select only direct children, not nested ones
+    rootElement.querySelectorAll(':scope > .canvas-item').forEach(el => {
+        const blockData = {
             id: el.dataset.id,
             type: el.dataset.type,
             title: el.dataset.title,
             icon: el.dataset.icon,
-            content: el.dataset.content,
-            placeholder: el.dataset.placeholder
-        });
+            content: el.dataset.content || '',
+            placeholder: el.dataset.placeholder || ''
+        };
+
+        if (blockData.type === 'group') {
+            const groupContainer = el.querySelector('.group-container');
+            blockData.blocks = getAgentDataFromCanvas(groupContainer); // Recursive call
+        }
+
+        blocks.push(blockData);
     });
     return blocks;
 };
@@ -825,10 +887,266 @@ const initHelpModal = () => {
 };
 
 
+const initToolboxTabs = () => {
+    const tabButtons = document.querySelectorAll('.toolbox-tab-btn');
+    const tabContents = document.querySelectorAll('.toolbox-tab-content');
+    const variablesContainer = document.getElementById('variables-container');
+    const addVariableBtn = document.getElementById('add-variable-btn');
+
+    const setActiveTab = (tabName) => {
+        tabButtons.forEach(btn => {
+            const isActive = btn.dataset.tab === tabName;
+            btn.classList.toggle('border-blue-500', isActive);
+            btn.classList.toggle('text-white', isActive);
+            btn.classList.toggle('border-transparent', !isActive);
+            btn.classList.toggle('text-gray-400', !isActive);
+            btn.classList.toggle('hover:border-blue-500', !isActive);
+        });
+        tabContents.forEach(content => {
+            content.classList.toggle('hidden', content.id !== `${tabName}-tab-content`);
+        });
+    };
+
+    tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => setActiveTab(btn.dataset.tab));
+    });
+
+    const createVariableRow = () => {
+        const row = document.createElement('div');
+        row.className = 'flex items-center space-x-2';
+        row.innerHTML = `
+            <input type="text" placeholder="key" class="variable-key w-1/3 bg-gray-900 border border-gray-600 rounded-md p-1 text-sm focus:ring-1 focus:ring-blue-500">
+            <span class="text-gray-400">=</span>
+            <input type="text" placeholder="value" class="variable-value flex-grow bg-gray-900 border border-gray-600 rounded-md p-1 text-sm focus:ring-1 focus:ring-blue-500">
+            <button class="remove-variable-btn text-gray-500 hover:text-red-400 w-6 h-6 flex-shrink-0"><i class="fas fa-times"></i></button>
+        `;
+        row.querySelector('.remove-variable-btn').addEventListener('click', () => row.remove());
+        variablesContainer.appendChild(row);
+    };
+
+    addVariableBtn.addEventListener('click', createVariableRow);
+
+    // Set initial active tab
+    setActiveTab('blocks');
+    // Add one variable row to start
+    createVariableRow();
+};
+
+
+// --- Command Palette Logic ---
+const commands = [
+    // Block creation commands
+    { id: 'cmd-persona', title: 'Create: Persona / Role Block', icon: 'fa-user-astronaut', action: () => document.querySelector('.toolbox-item[data-type="persona"]').click() },
+    { id: 'cmd-goal', title: 'Create: Primary Goal Block', icon: 'fa-bullseye', action: () => document.querySelector('.toolbox-item[data-type="goal"]').click() },
+    { id: 'cmd-knowledge', title: 'Create: Knowledge Base Block', icon: 'fa-book', action: () => document.querySelector('.toolbox-item[data-type="knowledge"]').click() },
+    { id: 'cmd-tools', title: 'Create: Tools / Skills Block', icon: 'fa-tools', action: () => document.querySelector('.toolbox-item[data-type="tool"]').click() },
+    { id: 'cmd-rule', title: 'Create: Strict Rule Block', icon: 'fa-gavel', action: () => document.querySelector('.toolbox-item[data-type="rule"]').click() },
+    { id: 'cmd-output', title: 'Create: Output Format Block', icon: 'fa-code', action: () => document.querySelector('.toolbox-item[data-type="output"]').click() },
+    { id: 'cmd-group', title: 'Create: Group Block', icon: 'fa-object-group', action: () => document.querySelector('.toolbox-item[data-type="group"]').click() },
+    // Action commands
+    { id: 'cmd-save', title: 'Save to Cloud', icon: 'fa-save', action: saveAgent },
+    { id: 'cmd-generate', title: 'Generate Prompt', icon: 'fa-cogs', action: generatePrompt },
+    { id: 'cmd-clear', title: 'Clear Canvas', icon: 'fa-trash', action: () => document.getElementById('clear-btn').click() },
+    { id: 'cmd-export', title: 'Export to JSON', icon: 'fa-file-export', action: () => document.getElementById('export-btn').click() },
+    { id: 'cmd-import', title: 'Import from JSON', icon: 'fa-file-import', action: () => document.getElementById('import-btn').click() },
+    { id: 'cmd-help', title: 'Open Help & Examples', icon: 'fa-question-circle', action: () => document.getElementById('help-btn').click() },
+    { id: 'cmd-undo', title: 'Undo', icon: 'fa-undo', action: () => document.getElementById('undo-btn').click() },
+    { id: 'cmd-redo', title: 'Redo', icon: 'fa-redo', action: () => document.getElementById('redo-btn').click() },
+];
+
+const initCommandPalette = () => {
+    const modal = document.getElementById('command-palette-modal');
+    const input = document.getElementById('command-palette-input');
+    const resultsContainer = document.getElementById('command-palette-results');
+    let activeIndex = -1;
+
+    const openPalette = () => {
+        renderResults('');
+        openModal(modal);
+        input.focus();
+    };
+
+    const closePalette = () => {
+        closeModal(modal);
+        input.value = '';
+        activeIndex = -1;
+    };
+
+    const renderResults = (searchTerm) => {
+        resultsContainer.innerHTML = '';
+        const filteredCommands = commands.filter(cmd => cmd.title.toLowerCase().includes(searchTerm.toLowerCase()));
+
+        filteredCommands.forEach((cmd, index) => {
+            const resultEl = document.createElement('div');
+            resultEl.className = 'p-2 rounded-md hover:bg-gray-700 cursor-pointer flex items-center';
+            resultEl.innerHTML = `<i class="fas ${cmd.icon} w-8 text-center text-gray-400"></i><span>${cmd.title}</span>`;
+            resultEl.addEventListener('click', () => {
+                cmd.action();
+                closePalette();
+            });
+            resultsContainer.appendChild(resultEl);
+        });
+        activeIndex = -1;
+        updateActiveResult();
+    };
+
+    const updateActiveResult = () => {
+        const results = resultsContainer.children;
+        for (let i = 0; i < results.length; i++) {
+            results[i].classList.toggle('bg-blue-600/50', i === activeIndex);
+        }
+    };
+
+    const executeActiveResult = () => {
+        if (activeIndex > -1) {
+            const activeResult = resultsContainer.children[activeIndex];
+            activeResult.click();
+        }
+    };
+
+    window.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            openPalette();
+        }
+    });
+
+    input.addEventListener('keydown', (e) => {
+        const results = resultsContainer.children;
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            activeIndex = (activeIndex + 1) % results.length;
+            updateActiveResult();
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            activeIndex = (activeIndex - 1 + results.length) % results.length;
+            updateActiveResult();
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            executeActiveResult();
+        } else if (e.key === 'Escape') {
+            closePalette();
+        }
+    });
+
+    input.addEventListener('input', () => renderResults(input.value));
+    document.getElementById('command-palette-backdrop').addEventListener('click', closePalette);
+};
+
+
+// --- Playground Logic ---
+const initPlayground = () => {
+    const playgroundBtn = document.getElementById('playground-btn');
+    const playgroundModal = document.getElementById('playground-modal');
+    const closePlaygroundBtn = document.getElementById('close-playground-modal-btn');
+    const apiKeyInput = document.getElementById('api-key-input');
+    const chatArea = document.getElementById('playground-chat-area');
+    const playgroundInput = document.getElementById('playground-input');
+    const sendBtn = document.getElementById('playground-send-btn');
+
+    let conversationHistory = [];
+    let systemPrompt = '';
+
+    // Load API key from session storage
+    apiKeyInput.value = sessionStorage.getItem('gemini-api-key') || '';
+
+    apiKeyInput.addEventListener('input', () => {
+        sessionStorage.setItem('gemini-api-key', apiKeyInput.value);
+    });
+
+    playgroundBtn.addEventListener('click', () => {
+        systemPrompt = document.getElementById('prompt-output').textContent;
+        conversationHistory = []; // Reset history
+        chatArea.innerHTML = '<div class="text-center text-gray-400">Playground session started. The generated prompt is now active as the system instruction.</div>';
+        closeModal(document.getElementById('prompt-modal'));
+        openModal(playgroundModal);
+        playgroundInput.focus();
+    });
+
+    closePlaygroundBtn.addEventListener('click', () => closeModal(playgroundModal));
+
+    const addMessageToChat = (role, text) => {
+        const messageEl = document.createElement('div');
+        const roleClass = role === 'user' ? 'bg-blue-600/30 self-end' : 'bg-gray-700 self-start';
+        const roleName = role === 'user' ? 'You' : 'Agent';
+        messageEl.className = `p-3 rounded-lg max-w-xl ${roleClass}`;
+        messageEl.innerHTML = `<div class="font-bold mb-1">${roleName}</div><p>${text.replace(/\n/g, '<br>')}</p>`;
+        chatArea.appendChild(messageEl);
+        chatArea.scrollTop = chatArea.scrollHeight;
+    };
+
+    const sendMessage = async () => {
+        const userInput = playgroundInput.value.trim();
+        if (!userInput) return;
+
+        const apiKey = apiKeyInput.value.trim();
+        if (!apiKey) {
+            showToast("Please enter your Gemini API key.", "error");
+            return;
+        }
+
+        addMessageToChat('user', userInput);
+        playgroundInput.value = '';
+        sendBtn.disabled = true;
+
+        const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+
+        const requestBody = {
+            contents: [
+                ...conversationHistory,
+                { role: "user", parts: [{ text: userInput }] }
+            ],
+            system_instruction: {
+                parts: [{ text: systemPrompt }]
+            }
+        };
+
+        try {
+            const response = await fetch(apiEndpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error.message || `HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const modelResponse = data.candidates[0].content.parts[0].text;
+            addMessageToChat('model', modelResponse);
+
+            // Update history
+            conversationHistory.push({ role: "user", parts: [{ text: userInput }] });
+            conversationHistory.push({ role: "model", parts: [{ text: modelResponse }] });
+
+        } catch (error) {
+            console.error("API Error:", error);
+            showToast(`API Error: ${error.message}`, "error");
+            addMessageToChat('model', `Sorry, I encountered an error: ${error.message}`);
+        } finally {
+            sendBtn.disabled = false;
+            playgroundInput.focus();
+        }
+    };
+
+    sendBtn.addEventListener('click', sendMessage);
+    playgroundInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+};
+
 // --- Initial Call ---
 createMainButtons();
 updateCanvasPlaceholder();
 initDragAndDrop(); // Initialize the new drag and drop system
 historyManager.init(getAgentDataFromCanvas()); // Set initial state for undo/redo
 initHelpModal();
+initToolboxTabs();
+initCommandPalette();
+initPlayground();
 // Initial call to setup listener is handled by onAuthStateChanged
