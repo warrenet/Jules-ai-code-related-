@@ -21,10 +21,24 @@ MOCK_DIR="mock_bin"
 ARGS_FILE="/tmp/ai_cli_test_args"
 
 # --- Helper Functions ---
+
+# Marks a test as passed.
+#
+# Globals:
+#   TEST_COUNT, C_GREEN, C_RESET
+# Arguments:
+#   $1: The success message.
 pass() {
     ((TEST_COUNT++))
     printf "${C_GREEN}PASS:${C_RESET} %s\n" "$1"
 }
+
+# Marks a test as failed.
+#
+# Globals:
+#   TEST_COUNT, FAIL_COUNT, C_RED, C_RESET
+# Arguments:
+#   $1: The failure message.
 fail() {
     ((TEST_COUNT++))
     ((FAIL_COUNT++))
@@ -32,6 +46,12 @@ fail() {
 }
 
 # --- Mocking Setup ---
+
+# Cleans up the mock environment after tests are run.
+# This function is triggered by the EXIT trap.
+#
+# Globals:
+#   MOCK_DIR, ARGS_FILE, ORIGINAL_PATH
 cleanup() {
     printf "\nCleaning up...\n"
     # Restore original ai_cli.sh if it exists
@@ -47,6 +67,12 @@ cleanup() {
 }
 trap cleanup EXIT
 
+# Sets up a mock environment for testing.
+# It creates a directory for mock commands and prepends it to the PATH,
+# effectively hijacking commands like `curl` and `jq`.
+#
+# Globals:
+#   MOCK_DIR, ORIGINAL_PATH, PATH
 setup() {
     echo "--- Setting up mock environment ---"
     mkdir -p "$MOCK_DIR"
@@ -69,6 +95,7 @@ EOF
 
 # --- Test Cases ---
 
+# Tests if `ai_cli.sh -h` displays the help message and exits successfully.
 test_01_ai_cli_help_flag() {
     local out
     out=$(bash ./ai_cli.sh -h 2>&1)
@@ -80,6 +107,7 @@ test_01_ai_cli_help_flag() {
     fi
 }
 
+# Tests if `ai_cli.sh` fails when given mutually exclusive arguments (e.g., -p and -f).
 test_02_ai_cli_mutually_exclusive_args() {
     # In this environment, capturing stderr from a failing script is unreliable.
     # We will test for the exit code only, which is the most important part.
@@ -92,6 +120,7 @@ test_02_ai_cli_mutually_exclusive_args() {
     fi
 }
 
+# Tests the `00_check_env.sh` script for both success and failure cases.
 test_03_check_env_script() {
     # Test pass case
     export OPENAI_API_KEY="test"
@@ -115,6 +144,7 @@ test_03_check_env_script() {
     fi
 }
 
+# Checks if all the main wrapper scripts exist in the current directory.
 test_04_wrapper_scripts_exist() {
     local scripts=("clip_summarize.sh" "url_summarize.sh" "file_summarize.sh")
     for script in "${scripts[@]}"; do
@@ -127,6 +157,9 @@ test_04_wrapper_scripts_exist() {
 }
 
 # --- Test Runner ---
+
+# The main test runner.
+# Sets up the mock environment, runs all test cases, and reports the final result.
 main() {
     setup
 

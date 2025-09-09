@@ -17,18 +17,41 @@ IFS=$'\n\t'
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # --- Helper Functions ---
+
+# Logs an informational message to stderr.
+#
+# Arguments:
+#   $1: The message to log.
 log() {
     printf >&2 "\033[0;32m[%s] %s: %s\033[0m\n" "$(date +'%H:%M:%S')" "INFO" "$1"
 }
+
+# Logs an error message to stderr and exits the script.
+#
+# Arguments:
+#   $1: The error message to display.
 die() {
     printf >&2 "\033[0;31m[%s] %s: %s\033[0m\n" "$(date +'%H:%M:%S')" "ERROR" "$1"
     exit 1
 }
+
+# Checks if a command exists and exits if it doesn't.
+#
+# Arguments:
+#   $1: The command name to check.
 require_cmd() {
     command -v "$1" >/dev/null || die "Required command '$1' not found. For this script, please run 'pkg install termux-api'."
 }
 
 # --- Main Logic ---
+
+# Main function to get clipboard content, summarize it via ai_cli.sh,
+# and display the result.
+#
+# Globals:
+#   SCRIPT_DIR
+# Arguments:
+#   $@: remaining arguments passed to ai_cli.sh
 main() {
     require_cmd "termux-clipboard-get"
 

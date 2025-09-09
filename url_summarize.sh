@@ -17,13 +17,25 @@ IFS=$'\n\t'
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # --- Helper Functions ---
+
+# Logs an informational message to stderr.
+#
+# Arguments:
+#   $1: The message to log.
 log() {
     printf >&2 "\033[0;32m[%s] %s: %s\033[0m\n" "$(date +'%H:%M:%S')" "INFO" "$1"
 }
+
+# Logs an error message to stderr and exits the script.
+#
+# Arguments:
+#   $1: The error message to display.
 die() {
     printf >&2 "\033[0;31m[%s] %s: %s\033[0m\n" "$(date +'%H:%M:%S')" "ERROR" "$1"
     exit 1
 }
+
+# Displays usage information and exits.
 usage() {
     echo "URL Summarizer"
     echo "Usage: $0 -u <URL> [ai_cli.sh options]"
@@ -31,6 +43,15 @@ usage() {
 }
 
 # --- Main Logic ---
+
+# Main function to fetch and summarize a URL.
+# It extracts text from HTML, handles large content by chunking,
+# and passes the content to ai_cli.sh for summarization.
+#
+# Globals:
+#   SCRIPT_DIR
+# Arguments:
+#   $@: The command-line arguments, including the URL.
 main() {
     local url=""
     # Handle basic -u flag, pass the rest to ai_cli
