@@ -730,6 +730,10 @@ const guideContent = {
         {
             title: "Generating the Prompt",
             content: "When you're done, click 'Generate Prompt'. This compiles all your blocks into a single, structured prompt that you can copy and use."
+        },
+        {
+            title: "Advanced Techniques",
+            content: "<ul><li><b>Chain of Thought (CoT):</b> For complex reasoning tasks, add a rule like 'Think step-by-step before giving the final answer.' This encourages the AI to show its work, often leading to better results.</li><li><b>Few-Shot Prompting:</b> In a 'Persona' or 'Goal' block, provide 1-2 examples of the desired input/output format. This helps the AI understand exactly what you want.</li><li><b>Structured Output:</b> Use the 'Output Format' block to command the AI to return data in a specific structure like JSON or Markdown. This is essential for predictable, machine-readable results.</li></ul>"
         }
     ]
 };
@@ -753,6 +757,17 @@ const examples = [
             { id: "c2", type: "knowledge", title: "Knowledge Base", icon: "fa-book", content: "Your knowledge is based on the official documentation for Python, JavaScript, and general software engineering best practices for writing clean, maintainable code." },
             { id: "c3", type: "goal", title: "Primary Goal", icon: "fa-bullseye", content: "Review the provided code snippet. Identify potential bugs, style violations (based on PEP 8 for Python), and areas where readability could be improved. You must provide code examples for your suggestions." },
             { id: "c4", type: "output", title: "Output Format", icon: "fa-code", content: "Provide your review as a list of issues. Each issue should have a 'Severity' (High, Medium, Low), a 'Description', and a 'Suggested Fix' with a code example." }
+        ]
+    },
+    {
+        name: "Fact-Checking Bot (ReAct Style)",
+        description: "A bot that uses a simplified Reason-Act loop to fact-check a statement.",
+        data: [
+            { id: "d1", type: "persona", title: "Persona / Role", icon: "fa-user-astronaut", content: "You are a meticulous fact-checking agent. You have access to a search tool. You must follow a strict reasoning process to verify statements." },
+            { id: "d2", type: "goal", title: "Primary Goal", icon: "fa-bullseye", content: "Given a statement from the user, determine if it is true or false. You must use the provided search tool to find evidence." },
+            { id: "d3", type: "tool", title: "Tools / Skills", icon: "fa-tools", content: "You have one tool: `search(query: string)`. You must use this tool to find relevant information." },
+            { id: "d4", type: "rule", title: "Strict Rule / Constraint", icon: "fa-gavel", content: "You must follow the ReAct (Reason, Act, Observe) format. First, state your 'Reasoning' for what you need to find. Second, state the exact 'Action' you will take (e.g., `search('some query')`). Third, provide your final 'Answer' based on the observation (which you will imagine for this exercise)." },
+            { id: "d5", type: "output", title: "Output Format", icon: "fa-code", content: "Your final output must be a single JSON object with two keys: `{\"answer\": \"True\" | \"False\" | \"Uncertain\", \"reasoning_steps\": [\"Your thought process here\"]}`" }
         ]
     }
 ];
