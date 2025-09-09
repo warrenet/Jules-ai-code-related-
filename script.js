@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, deleteDoc, writeBatch, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // --- Firebase Configuration and Initialization ---
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-agent-builder-app';
@@ -234,6 +234,34 @@ const openEditModal = (blockElement) => {
     modalTitle.innerHTML = `<i class="fas ${blockElement.dataset.icon} mr-2"></i> Configure ${blockElement.dataset.title}`;
     modalTextarea.value = blockElement.dataset.content || '';
     modalTextarea.placeholder = blockElement.dataset.placeholder || 'Enter your instructions here...';
+
+    // --- Suggestion Logic Integration ---
+    const suggestionBtn = document.getElementById('suggestion-btn');
+    const suggestionPopover = document.getElementById('suggestion-popover');
+    const applySuggestionBtn = document.getElementById('apply-suggestion-btn');
+
+    // Reset and hide suggestion UI initially
+    updateSuggestionUI(null);
+
+    const debouncedGetSuggestion = debounce(async () => {
+        if (suggestionState.isLoading) return;
+        const suggestion = await getSuggestion(modalTextarea.value);
+        updateSuggestionUI(suggestion);
+    }, 1500); // 1.5 second debounce
+
+    modalTextarea.addEventListener('input', debouncedGetSuggestion);
+
+    suggestionBtn.onclick = () => { // Use onclick to easily overwrite
+        suggestionPopover.classList.toggle('hidden');
+    };
+
+    applySuggestionBtn.onclick = () => {
+        modalTextarea.value = suggestionState.suggestion;
+        suggestionPopover.classList.add('hidden');
+        suggestionBtn.classList.add('hidden'); // Hide after applying
+    };
+    // --- End Suggestion Logic ---
+
     openModal(editModal);
     setTimeout(() => modalTextarea.focus(), 50);
 };
@@ -479,9 +507,25 @@ const saveAgent = async () => {
             return;
         }
 
-        const docRef = doc(db, `artifacts/${appId}/public/data/agents`, agentName);
+        const agentRef = doc(db, `artifacts/${appId}/public/data/agents`, agentName);
+        const versionRef = doc(collection(agentRef, 'versions')); // Create a new version doc with a unique ID
+
         try {
-            await setDoc(docRef, { name: agentName, data: agentData, createdAt: new Date() });
+            const agentDoc = await getDoc(agentRef);
+
+            const batch = writeBatch(db);
+
+            // Write the actual agent data to the new version document
+            batch.set(versionRef, { data: agentData, createdAt: new Date() });
+
+            // Update the top-level agent document with metadata
+            if (agentDoc.exists()) {
+                batch.update(agentRef, { updatedAt: new Date(), latestVersionId: versionRef.id });
+            } else {
+                batch.set(agentRef, { name: agentName, createdAt: new Date(), updatedAt: new Date(), latestVersionId: versionRef.id });
+            }
+
+            await batch.commit();
             showToast(`Agent '${agentName}' saved successfully!`, "success");
         } catch (error) {
             console.error("Error saving agent:", error);
@@ -490,20 +534,36 @@ const saveAgent = async () => {
     });
 };
 
-const loadAgent = async (agentName) => {
+const loadAgent = async (agentName, versionId = null) => {
     if (!userId) {
         showToast("User not authenticated. Please wait.", "error");
         return;
     }
-    const docRef = doc(db, `artifacts/${appId}/public/data/agents`, agentName);
+
+    const agentRef = doc(db, `artifacts/${appId}/public/data/agents`, agentName);
     try {
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-            const agent = docSnap.data();
-            loadAgentDataToCanvas(agent.data);
-            showToast(`Agent '${agentName}' loaded.`, "info");
-        } else {
+        const agentDoc = await getDoc(agentRef);
+        if (!agentDoc.exists()) {
             showToast("Agent not found.", "error");
+            return;
+        }
+
+        let versionToLoadId = versionId || agentDoc.data().latestVersionId;
+        if (!versionToLoadId) {
+            showToast("Agent has no saved versions.", "error");
+            return;
+        }
+
+        const versionRef = doc(agentRef, 'versions', versionToLoadId);
+        const versionDoc = await getDoc(versionRef);
+
+        if (versionDoc.exists()) {
+            const agentVersion = versionDoc.data();
+            loadAgentDataToCanvas(agentVersion.data);
+            const loadedMsg = versionId ? `Loaded version from ${new Date(agentVersion.createdAt.seconds * 1000).toLocaleString()}` : `Agent '${agentName}' loaded.`;
+            showToast(loadedMsg, "info");
+        } else {
+            showToast("Could not find the specified agent version.", "error");
         }
     } catch (error) {
         console.error("Error loading agent:", error);
@@ -517,12 +577,24 @@ const deleteAgent = async (agentName) => {
         return;
     }
 
-    showConfirm(`Are you sure you want to delete the agent '${agentName}'? This cannot be undone.`, async () => {
-        const docRef = doc(db, `artifacts/${appId}/public/data/agents`, agentName);
+    showConfirm(`Are you sure you want to delete the agent '${agentName}' and all its versions? This cannot be undone.`, async () => {
+        const agentRef = doc(db, `artifacts/${appId}/public/data/agents`, agentName);
+        const versionsCol = collection(agentRef, 'versions');
+
         try {
-            await deleteDoc(docRef);
+            const versionsSnapshot = await getDocs(versionsCol);
+            const batch = writeBatch(db);
+
+            // Delete all version sub-documents
+            versionsSnapshot.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+
+            // Delete the parent agent document
+            batch.delete(agentRef);
+
+            await batch.commit();
             showToast(`Agent '${agentName}' deleted.`, "success");
-            // The onSnapshot listener will automatically update the UI
         } catch (e) {
             console.error("Error deleting agent: ", e);
             showToast("Failed to delete agent.", "error");
@@ -550,9 +622,12 @@ const setupRealtimeListener = () => {
             `;
             agents.forEach(agent => {
                 dropdownHTML += `
-                    <div class="flex justify-between items-center px-4 py-2 text-sm text-gray-200 hover:bg-gray-600 w-full text-left" role="menuitem">
+                    <div class="flex justify-between items-center px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-interactive)] w-full text-left" role="menuitem">
                         <button class="flex-grow text-left load-agent-item" data-agent-name="${agent.name}">${agent.name}</button>
-                        <button class="delete-agent-item text-gray-400 hover:text-red-400" data-agent-name="${agent.name}"><i class="fas fa-trash-alt"></i></button>
+                        <div class="flex items-center">
+                            <button class="manage-versions-btn text-[var(--text-tertiary)] hover:text-[var(--text-primary)] mr-3" data-agent-name="${agent.name}" title="Version History"><i class="fas fa-history"></i></button>
+                            <button class="delete-agent-item text-[var(--text-tertiary)] hover:text-[var(--color-red-text)]" data-agent-name="${agent.name}" title="Delete Agent"><i class="fas fa-trash-alt"></i></button>
+                        </div>
                     </div>
                 `;
             });
@@ -560,7 +635,7 @@ const setupRealtimeListener = () => {
         }
 
         container.innerHTML = `
-            <button id="load-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md transition-colors shadow-lg ${agents.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}" ${agents.length === 0 ? 'disabled' : ''}>
+            <button id="load-btn" class="bg-[var(--color-purple-action)] hover:bg-[var(--color-purple-action-hover)] text-[var(--text-primary)] font-bold py-2 px-4 rounded-md transition-colors shadow-lg ${agents.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}" ${agents.length === 0 ? 'disabled' : ''}>
                 <i class="fas fa-folder-open mr-2"></i>Load
             </button>
             ${dropdownHTML}
@@ -576,7 +651,7 @@ const setupRealtimeListener = () => {
             });
 
             document.addEventListener('click', (e) => {
-                 if (!container.contains(e.target)) {
+                 if (container && !container.contains(e.target)) {
                     dropdown.classList.add('hidden');
                  }
             });
@@ -590,8 +665,53 @@ const setupRealtimeListener = () => {
                    e.stopPropagation();
                    deleteAgent(item.dataset.agentName);
                });
-           });
+            });
+
+            container.querySelectorAll('.manage-versions-btn').forEach(item => {
+               item.addEventListener('click', (e) => {
+                   e.stopPropagation();
+                   openVersionsModal(item.dataset.agentName);
+               });
+            });
         }
+    });
+};
+
+const openVersionsModal = async (agentName) => {
+    const modal = document.getElementById('versions-modal');
+    const title = document.getElementById('versions-modal-title');
+    const container = document.getElementById('versions-list-container');
+
+    title.textContent = `Version History for ${agentName}`;
+    container.innerHTML = '<div class="text-center text-[var(--text-tertiary)]">Loading...</div>';
+    openModal(modal);
+
+    const agentRef = doc(db, `artifacts/${appId}/public/data/agents`, agentName);
+    const versionsCol = collection(agentRef, 'versions');
+    const versionsSnapshot = await getDocs(query(versionsCol, orderBy('createdAt', 'desc')));
+
+    if (versionsSnapshot.empty) {
+        container.innerHTML = '<div class="text-center text-[var(--text-tertiary)]">No versions found.</div>';
+        return;
+    }
+
+    container.innerHTML = '';
+    versionsSnapshot.forEach(doc => {
+        const version = doc.data();
+        const versionEl = document.createElement('div');
+        versionEl.className = 'flex justify-between items-center p-2 bg-[var(--bg-tertiary)] rounded-md';
+        versionEl.innerHTML = `
+            <span class="text-sm text-[var(--text-secondary)]">Saved on: ${new Date(version.createdAt.seconds * 1000).toLocaleString()}</span>
+            <button class="load-version-btn bg-[var(--color-blue-action)] hover:bg-[var(--color-blue-action-hover)] text-white text-xs font-bold py-1 px-2 rounded" data-version-id="${doc.id}">Load</button>
+        `;
+        container.appendChild(versionEl);
+    });
+
+    container.querySelectorAll('.load-version-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            loadAgent(agentName, btn.dataset.versionId);
+            closeModal(modal);
+        });
     });
 };
 
@@ -624,14 +744,23 @@ const createMainButtons = () => {
         <button id="save-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-colors shadow-lg"><i class="fas fa-save mr-2"></i>Save (Cloud)</button>
         <div id="load-container" class="relative"></div> <!-- Container for load button and dropdown -->
         <button id="generate-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md transition-colors shadow-lg"><i class="fas fa-cogs mr-2"></i>Generate Prompt</button>
-        <button id="clear-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md transition-colors shadow-lg"><i class="fas fa-trash mr-2"></i>Clear</button>
-        <div class="h-6 w-px bg-gray-700"></div>
-        <button id="help-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md transition-colors shadow-lg"><i class="fas fa-question-circle mr-2"></i>Help</button>
+        <button id="clear-btn" class="bg-[var(--color-red-action)] hover:bg-[var(--color-red-action-hover)] text-[var(--text-primary)] font-bold py-2 px-4 rounded-md transition-colors shadow-lg"><i class="fas fa-trash mr-2"></i>Clear</button>
+        <div class="h-6 w-px bg-[var(--border-primary)]"></div>
+        <button id="help-btn" class="bg-[var(--bg-interactive)] hover:bg-[var(--bg-interactive-hover)] text-[var(--text-primary)] font-bold py-2 px-4 rounded-md transition-colors shadow-lg"><i class="fas fa-question-circle mr-2"></i>Help</button>
+        <button id="theme-toggle-btn" class="bg-[var(--bg-interactive)] hover:bg-[var(--bg-interactive-hover)] text-[var(--text-primary)] font-bold py-2 px-3 rounded-md transition-colors shadow-lg"><i class="fas fa-sun"></i></button>
     `;
     // Re-assign listeners after creating them
     document.getElementById('save-btn').addEventListener('click', saveAgent);
     document.getElementById('generate-btn').addEventListener('click', generatePrompt);
     document.getElementById('help-btn').addEventListener('click', () => openModal(document.getElementById('help-modal')));
+
+    const themeToggleBtn = document.getElementById('theme-toggle-btn');
+    themeToggleBtn.addEventListener('click', () => {
+        document.body.classList.toggle('light');
+        const isLight = document.body.classList.contains('light');
+        localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        themeToggleBtn.innerHTML = `<i class="fas ${isLight ? 'fa-moon' : 'fa-sun'}"></i>`;
+    });
 
     document.getElementById('clear-btn').addEventListener('click', () => {
         showConfirm('Are you sure you want to clear the entire canvas? This action cannot be undone.', () => {
@@ -1040,6 +1169,9 @@ const initPlayground = () => {
     const playgroundModal = document.getElementById('playground-modal');
     const closePlaygroundBtn = document.getElementById('close-playground-modal-btn');
     const apiKeyInput = document.getElementById('api-key-input');
+    const modelSelect = document.getElementById('model-select');
+    const temperatureSlider = document.getElementById('temperature-slider');
+    const temperatureValue = document.getElementById('temperature-value');
     const chatArea = document.getElementById('playground-chat-area');
     const playgroundInput = document.getElementById('playground-input');
     const sendBtn = document.getElementById('playground-send-btn');
@@ -1047,17 +1179,14 @@ const initPlayground = () => {
     let conversationHistory = [];
     let systemPrompt = '';
 
-    // Load API key from session storage
     apiKeyInput.value = sessionStorage.getItem('gemini-api-key') || '';
-
-    apiKeyInput.addEventListener('input', () => {
-        sessionStorage.setItem('gemini-api-key', apiKeyInput.value);
-    });
+    apiKeyInput.addEventListener('input', () => sessionStorage.setItem('gemini-api-key', apiKeyInput.value));
+    temperatureSlider.addEventListener('input', () => temperatureValue.textContent = temperatureSlider.value);
 
     playgroundBtn.addEventListener('click', () => {
         systemPrompt = document.getElementById('prompt-output').textContent;
-        conversationHistory = []; // Reset history
-        chatArea.innerHTML = '<div class="text-center text-gray-400">Playground session started. The generated prompt is now active as the system instruction.</div>';
+        conversationHistory = [];
+        chatArea.innerHTML = '<div class="text-center text-[var(--text-tertiary)]">Playground session started. The generated prompt is now active as the system instruction.</div>';
         closeModal(document.getElementById('prompt-modal'));
         openModal(playgroundModal);
         playgroundInput.focus();
@@ -1065,13 +1194,28 @@ const initPlayground = () => {
 
     closePlaygroundBtn.addEventListener('click', () => closeModal(playgroundModal));
 
-    const addMessageToChat = (role, text) => {
-        const messageEl = document.createElement('div');
-        const roleClass = role === 'user' ? 'bg-blue-600/30 self-end' : 'bg-gray-700 self-start';
+    const addMessageToChat = (role, text, isStreaming = false) => {
+        const roleClass = role === 'user' ? 'bg-blue-600/30 self-end' : 'bg-[var(--bg-tertiary)] self-start';
         const roleName = role === 'user' ? 'You' : 'Agent';
-        messageEl.className = `p-3 rounded-lg max-w-xl ${roleClass}`;
-        messageEl.innerHTML = `<div class="font-bold mb-1">${roleName}</div><p>${text.replace(/\n/g, '<br>')}</p>`;
-        chatArea.appendChild(messageEl);
+
+        if (isStreaming) {
+            let lastMessage = chatArea.querySelector('.streaming-message');
+            if (!lastMessage) {
+                lastMessage = document.createElement('div');
+                lastMessage.className = `p-3 rounded-lg max-w-xl streaming-message ${roleClass}`;
+                lastMessage.innerHTML = `<div class="font-bold mb-1">${roleName}</div><p></p>`;
+                chatArea.appendChild(lastMessage);
+            }
+            lastMessage.querySelector('p').innerHTML += text.replace(/\n/g, '<br>');
+        } else {
+            const streamingMessage = chatArea.querySelector('.streaming-message');
+            if(streamingMessage) streamingMessage.classList.remove('streaming-message');
+
+            const messageEl = document.createElement('div');
+            messageEl.className = `p-3 rounded-lg max-w-xl ${roleClass}`;
+            messageEl.innerHTML = `<div class="font-bold mb-1">${roleName}</div><p>${text.replace(/\n/g, '<br>')}</p>`;
+            chatArea.appendChild(messageEl);
+        }
         chatArea.scrollTop = chatArea.scrollHeight;
     };
 
@@ -1086,19 +1230,18 @@ const initPlayground = () => {
         }
 
         addMessageToChat('user', userInput);
+        conversationHistory.push({ role: "user", parts: [{ text: userInput }] });
         playgroundInput.value = '';
         sendBtn.disabled = true;
 
-        const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+        const model = modelSelect.value;
+        const temperature = parseFloat(temperatureSlider.value);
+        const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${apiKey}&alt=sse`;
 
         const requestBody = {
-            contents: [
-                ...conversationHistory,
-                { role: "user", parts: [{ text: userInput }] }
-            ],
-            system_instruction: {
-                parts: [{ text: systemPrompt }]
-            }
+            contents: conversationHistory.slice(0, -1), // Send history up to the last user message
+            system_instruction: { parts: [{ text: systemPrompt }] },
+            generationConfig: { temperature: temperature }
         };
 
         try {
@@ -1109,23 +1252,43 @@ const initPlayground = () => {
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error.message || `HTTP error! status: ${response.status}`);
+                const errorText = await response.text();
+                throw new Error(JSON.parse(errorText).error.message || `HTTP error! status: ${response.status}`);
             }
 
-            const data = await response.json();
-            const modelResponse = data.candidates[0].content.parts[0].text;
-            addMessageToChat('model', modelResponse);
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let fullResponse = "";
 
-            // Update history
-            conversationHistory.push({ role: "user", parts: [{ text: userInput }] });
-            conversationHistory.push({ role: "model", parts: [{ text: modelResponse }] });
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const jsonStr = line.substring(6);
+                        try {
+                            const data = JSON.parse(jsonStr);
+                            const text = data.candidates[0].content.parts[0].text;
+                            fullResponse += text;
+                            addMessageToChat('model', text, true);
+                        } catch (e) {
+                            // Ignore parsing errors for incomplete JSON chunks
+                        }
+                    }
+                }
+            }
+            conversationHistory.push({ role: "model", parts: [{ text: fullResponse }] });
 
         } catch (error) {
             console.error("API Error:", error);
             showToast(`API Error: ${error.message}`, "error");
             addMessageToChat('model', `Sorry, I encountered an error: ${error.message}`);
         } finally {
+            const streamingMessage = chatArea.querySelector('.streaming-message');
+            if(streamingMessage) streamingMessage.classList.remove('streaming-message');
             sendBtn.disabled = false;
             playgroundInput.focus();
         }
@@ -1140,8 +1303,83 @@ const initPlayground = () => {
     });
 };
 
+// --- Suggestion Logic ---
+const suggestionState = {
+    suggestion: '',
+    isLoading: false,
+};
+
+const debounce = (func, delay) => {
+    let timeout;
+    return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), delay);
+    };
+};
+
+const getSuggestion = async (text) => {
+    const apiKey = document.getElementById('api-key-input').value.trim();
+    if (!apiKey) return null; // No key, no suggestion
+    if (text.trim().split(' ').length < 5) return null; // Don't bother for very short text
+
+    suggestionState.isLoading = true;
+
+    const metaPrompt = `You are an expert prompt engineer. A user is writing an instruction for an AI agent. Your task is to make the instruction more precise, detailed, and effective. Return ONLY the improved text, without any preamble, explanation, or quotation marks.
+
+Original instruction: "${text}"
+
+Improved instruction:`;
+
+    const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+    const requestBody = { contents: [{ parts: [{ text: metaPrompt }] }] };
+
+    try {
+        const response = await fetch(apiEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+        });
+        if (!response.ok) return null;
+        const data = await response.json();
+        return data.candidates[0].content.parts[0].text.trim();
+    } catch (error) {
+        console.error("Suggestion API Error:", error);
+        return null;
+    } finally {
+        suggestionState.isLoading = false;
+    }
+};
+
+const updateSuggestionUI = (suggestion) => {
+    const suggestionBtn = document.getElementById('suggestion-btn');
+    const suggestionPopover = document.getElementById('suggestion-popover');
+    const suggestionText = document.getElementById('suggestion-text');
+
+    if (suggestion) {
+        suggestionState.suggestion = suggestion;
+        suggestionText.textContent = suggestion;
+        suggestionBtn.classList.remove('hidden');
+    } else {
+        suggestionBtn.classList.add('hidden');
+        suggestionPopover.classList.add('hidden');
+    }
+};
+
+
 // --- Initial Call ---
+const applySavedTheme = () => {
+    const savedTheme = localStorage.getItem('theme');
+    const themeToggleBtn = document.getElementById('theme-toggle-btn');
+    if (savedTheme === 'light') {
+        document.body.classList.add('light');
+        if(themeToggleBtn) themeToggleBtn.innerHTML = `<i class="fas fa-moon"></i>`;
+    } else {
+        if(themeToggleBtn) themeToggleBtn.innerHTML = `<i class="fas fa-sun"></i>`;
+    }
+};
+
 createMainButtons();
+applySavedTheme();
 updateCanvasPlaceholder();
 initDragAndDrop(); // Initialize the new drag and drop system
 historyManager.init(getAgentDataFromCanvas()); // Set initial state for undo/redo
