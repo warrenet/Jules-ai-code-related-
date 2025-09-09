@@ -1,0 +1,819 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+// --- Firebase Configuration and Initialization ---
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-agent-builder-app';
+let firebaseConfig;
+try {
+    firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "DEMO", authDomain: "DEMO", projectId: "DEMO" };
+} catch (e) {
+    console.error("Firebase config parsing error:", e);
+    firebaseConfig = { apiKey: "DEMO", authDomain: "DEMO", projectId: "DEMO" }; // Fallback
+}
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+let userId = null;
+
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        userId = user.uid;
+        console.log("User authenticated with UID:", userId);
+        setupRealtimeListener();
+    } else {
+        console.log("No user signed in. Signing in anonymously.");
+        try {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                 await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+                await signInAnonymously(auth);
+            }
+        } catch (error) {
+            console.error("Anonymous sign-in failed:", error);
+        }
+    }
+});
+
+// --- DOM Elements ---
+const toolboxItems = document.querySelectorAll('.toolbox-item');
+const canvas = document.getElementById('canvas');
+const canvasPlaceholder = document.getElementById('canvas-placeholder');
+
+const editModalBackdrop = document.getElementById('edit-modal-backdrop');
+const editModal = document.getElementById('edit-modal');
+const modalTitle = document.getElementById('modal-title');
+const modalTextarea = document.getElementById('modal-textarea');
+const closeModalBtn = document.getElementById('close-modal-btn');
+const modalSaveBtn = document.getElementById('modal-save-btn');
+const modalCancelBtn = document.getElementById('modal-cancel-btn');
+
+const promptModalBackdrop = document.getElementById('prompt-modal-backdrop');
+const promptModal = document.getElementById('prompt-modal');
+const promptOutput = document.getElementById('prompt-output');
+const copyPromptBtn = document.getElementById('copy-prompt-btn');
+const closePromptModalBtn = document.getElementById('close-prompt-modal-btn');
+const promptDoneBtn = document.getElementById('prompt-done-btn');
+
+const confirmModal = document.getElementById('confirm-modal');
+const confirmModalText = document.getElementById('confirm-modal-text');
+const confirmModalOkBtn = document.getElementById('confirm-modal-ok-btn');
+const confirmModalCancelBtn = document.getElementById('confirm-modal-cancel-btn');
+
+const saveModal = document.getElementById('save-modal');
+const saveModalInput = document.getElementById('save-modal-input');
+const saveModalError = document.getElementById('save-modal-error');
+const saveModalSaveBtn = document.getElementById('save-modal-save-btn');
+const saveModalCancelBtn = document.getElementById('save-modal-cancel-btn');
+
+const mainActionsContainer = document.getElementById('main-actions');
+let loadContainer; // Will be created dynamically
+
+let currentEditingBlock = null;
+
+// --- History Management ---
+const historyManager = {
+    history: [],
+    historyIndex: -1,
+
+    init(initialState) {
+        this.history = [JSON.stringify(initialState)];
+        this.historyIndex = 0;
+        this.updateButtons();
+    },
+
+    pushState(state) {
+        // If we are in the middle of the history, chop off the future states
+        if (this.historyIndex < this.history.length - 1) {
+            this.history = this.history.slice(0, this.historyIndex + 1);
+        }
+        // Don't push duplicates
+        if (this.history[this.historyIndex] === JSON.stringify(state)) return;
+
+        this.history.push(JSON.stringify(state));
+        this.historyIndex++;
+        this.updateButtons();
+    },
+
+    undo() {
+        if (this.canUndo()) {
+            this.historyIndex--;
+            this.updateButtons();
+            return JSON.parse(this.history[this.historyIndex]);
+        }
+        return null;
+    },
+
+    redo() {
+        if (this.canRedo()) {
+            this.historyIndex++;
+            this.updateButtons();
+            return JSON.parse(this.history[this.historyIndex]);
+        }
+        return null;
+    },
+
+    canUndo() {
+        return this.historyIndex > 0;
+    },
+
+    canRedo() {
+        return this.historyIndex < this.history.length - 1;
+    },
+
+    updateButtons() {
+        const undoBtn = document.getElementById('undo-btn');
+        const redoBtn = document.getElementById('redo-btn');
+        if (undoBtn) undoBtn.disabled = !this.canUndo();
+        if (redoBtn) redoBtn.disabled = !this.canRedo();
+    }
+};
+
+// --- Core Functions ---
+const updateCanvasPlaceholder = () => {
+    const hasItems = canvas.querySelector('.canvas-item');
+    canvasPlaceholder.style.display = hasItems ? 'none' : 'flex';
+};
+
+const createBlockElement = (blockData) => {
+    const { id, type, title, icon, content } = blockData;
+
+    const div = document.createElement('div');
+    div.className = `canvas-item bg-gray-800/80 border border-gray-700 rounded-lg p-4 shadow-lg flex items-start space-x-4`;
+    div.dataset.id = id;
+    div.dataset.type = type;
+    div.dataset.title = title;
+    div.dataset.icon = icon;
+    // draggable property is no longer needed, SortableJS handles it.
+
+    div.innerHTML = `
+        <i class="fas ${icon} text-xl text-gray-400 pt-1 cursor-grab active:cursor-grabbing"></i>
+        <div class="flex-1 overflow-hidden">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-white">${title}</h3>
+                <div class="flex items-center space-x-2">
+                    <button class="collapse-btn text-gray-400 hover:text-white transition-colors w-6 h-6 flex items-center justify-center"><i class="fas fa-chevron-up"></i></button>
+                    <button class="edit-btn text-gray-400 hover:text-blue-400 transition-colors w-6 h-6 flex items-center justify-center"><i class="fas fa-pencil-alt"></i></button>
+                    <button class="delete-btn text-gray-400 hover:text-red-400 transition-colors w-6 h-6 flex items-center justify-center"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            </div>
+            <div class="collapsible-content">
+                <p class="content-preview text-sm text-gray-300 mt-2 pr-2">${content || 'Click to configure...'}</p>
+            </div>
+        </div>
+    `;
+    // Store content in a data attribute for easy access
+    div.dataset.content = content || '';
+    div.dataset.placeholder = blockData.placeholder || 'Enter your instructions here...';
+
+
+    // Attach event listeners to the new block
+    div.querySelector('.edit-btn').addEventListener('click', () => openEditModal(div));
+    div.querySelector('.delete-btn').addEventListener('click', () => {
+        recordCanvasChange(() => {
+            div.remove();
+            updateCanvasPlaceholder();
+        });
+    });
+    div.querySelector('.collapse-btn').addEventListener('click', () => {
+        const block = div;
+        const icon = block.querySelector('.collapse-btn i');
+        block.classList.toggle('is-collapsed');
+        if (block.classList.contains('is-collapsed')) {
+            icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+        } else {
+            icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+        }
+    });
+
+    return div;
+};
+
+const openModal = (modalEl) => {
+    const backdrop = document.getElementById(`${modalEl.id}-backdrop`);
+    modalEl.classList.add('show');
+    backdrop.classList.add('show');
+};
+
+const closeModal = (modalEl) => {
+    const backdrop = document.getElementById(`${modalEl.id}-backdrop`);
+    modalEl.classList.remove('show');
+    backdrop.classList.remove('show');
+};
+
+const openEditModal = (blockElement) => {
+    currentEditingBlock = blockElement;
+    modalTitle.innerHTML = `<i class="fas ${blockElement.dataset.icon} mr-2"></i> Configure ${blockElement.dataset.title}`;
+    modalTextarea.value = blockElement.dataset.content || '';
+    modalTextarea.placeholder = blockElement.dataset.placeholder || 'Enter your instructions here...';
+    openModal(editModal);
+    setTimeout(() => modalTextarea.focus(), 50);
+};
+
+const closeEditModal = () => {
+    closeModal(editModal);
+    currentEditingBlock = null;
+};
+
+const saveModalChanges = () => {
+    if (currentEditingBlock) {
+        recordCanvasChange(() => {
+            const newContent = modalTextarea.value;
+            currentEditingBlock.dataset.content = newContent;
+            const preview = currentEditingBlock.querySelector('.content-preview');
+            preview.textContent = newContent || 'Click to configure...';
+            if (!newContent) {
+               preview.classList.add('text-gray-500');
+            } else {
+               preview.classList.remove('text-gray-500');
+            }
+        });
+    }
+    closeEditModal();
+};
+
+// --- UI Helper Functions ---
+const showToast = (message, type = 'info') => {
+    const toastContainer = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    const icons = { success: 'fa-check-circle', error: 'fa-times-circle', info: 'fa-info-circle' };
+    const colors = { success: 'bg-green-600', error: 'bg-red-600', info: 'bg-blue-600' };
+
+    toast.className = `flex items-center text-white px-4 py-3 rounded-md shadow-lg ${colors[type]} animate-toast-in`;
+    toast.innerHTML = `<i class="fas ${icons[type]} mr-2"></i><p>${message}</p>`;
+
+    toastContainer.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.remove('animate-toast-in');
+        toast.classList.add('animate-toast-out');
+        toast.addEventListener('animationend', () => toast.remove());
+    }, 3000);
+};
+
+const showConfirm = (text, onConfirm) => {
+    confirmModalText.textContent = text;
+
+    // Use .cloneNode(true) to remove any previous event listeners
+    const newOkBtn = confirmModalOkBtn.cloneNode(true);
+    confirmModalOkBtn.parentNode.replaceChild(newOkBtn, confirmModalOkBtn);
+
+    const newCancelBtn = confirmModalCancelBtn.cloneNode(true);
+    confirmModalCancelBtn.parentNode.replaceChild(newCancelBtn, confirmModalCancelBtn);
+
+    const close = () => closeModal(confirmModal);
+
+    newOkBtn.addEventListener('click', () => {
+        close();
+        onConfirm();
+    });
+    newCancelBtn.addEventListener('click', close);
+    document.getElementById('confirm-modal-backdrop').addEventListener('click', close, { once: true });
+
+    openModal(confirmModal);
+};
+
+const showSavePrompt = (onSave) => {
+    saveModalInput.value = '';
+    saveModalError.classList.add('hidden');
+
+    const newSaveBtn = saveModalSaveBtn.cloneNode(true);
+    saveModalSaveBtn.parentNode.replaceChild(newSaveBtn, saveModalSaveBtn);
+
+    const newCancelBtn = saveModalCancelBtn.cloneNode(true);
+    saveModalCancelBtn.parentNode.replaceChild(newCancelBtn, saveModalCancelBtn);
+
+    const close = () => closeModal(saveModal);
+
+    newSaveBtn.addEventListener('click', () => {
+        const agentName = saveModalInput.value.trim();
+        if (agentName) {
+            close();
+            onSave(agentName);
+        } else {
+            saveModalError.textContent = 'Please enter a valid name.';
+            saveModalError.classList.remove('hidden');
+        }
+    });
+    newCancelBtn.addEventListener('click', close);
+    document.getElementById('save-modal-backdrop').addEventListener('click', close, { once: true });
+
+    openModal(saveModal);
+    setTimeout(() => saveModalInput.focus(), 50);
+};
+
+
+const generatePrompt = () => {
+    const blocks = canvas.querySelectorAll('.canvas-item');
+    if (blocks.length === 0) {
+        showToast("Canvas is empty! Add some blocks first.", "error");
+        return;
+    }
+    let promptText = "### AGENT CONFIGURATION ###\n\n";
+    blocks.forEach(block => {
+        const title = block.dataset.title.toUpperCase();
+        const content = block.dataset.content || 'Not configured.';
+        promptText += `## ${title} ##\n${content}\n\n`;
+    });
+    promptOutput.textContent = promptText.trim();
+    openModal(promptModal);
+};
+
+// --- Drag and Drop Logic with SortableJS ---
+const initDragAndDrop = () => {
+    const toolboxContainer = document.getElementById('toolbox').querySelector('.space-y-3');
+
+    // Initialize Sortable on the toolbox to clone items
+    new Sortable(toolboxContainer, {
+        group: {
+            name: 'shared',
+            pull: 'clone',
+            put: false
+        },
+        animation: 150,
+        sort: false // Do not sort items in the toolbox
+    });
+
+    // Initialize Sortable on the canvas to accept items and re-order them
+    new Sortable(canvas, {
+        group: 'shared',
+        animation: 150,
+        onAdd: function (evt) {
+            recordCanvasChange(() => {
+                const itemEl = evt.item; // The clone from the toolbox
+
+                // Create a proper, functional canvas block from the toolbox item's data
+                const blockData = {
+                    id: `block-${Date.now()}`,
+                    type: itemEl.dataset.type,
+                    title: itemEl.dataset.title,
+                    icon: itemEl.dataset.icon,
+                    placeholder: itemEl.dataset.placeholder,
+                    content: ''
+                };
+                const newBlock = createBlockElement(blockData);
+
+                // Replace the static clone with our new functional block
+                itemEl.parentNode.replaceChild(newBlock, itemEl);
+
+                updateCanvasPlaceholder();
+            });
+        },
+        onEnd: function (evt) {
+            // This handles re-ordering within the canvas.
+            recordCanvasChange(() => {
+                updateCanvasPlaceholder();
+            });
+        }
+    });
+};
+
+// --- Firestore Persistence ---
+const getAgentDataFromCanvas = () => {
+    const blocks = [];
+    canvas.querySelectorAll('.canvas-item').forEach(el => {
+        blocks.push({
+            id: el.dataset.id,
+            type: el.dataset.type,
+            title: el.dataset.title,
+            icon: el.dataset.icon,
+            content: el.dataset.content,
+            placeholder: el.dataset.placeholder
+        });
+    });
+    return blocks;
+};
+
+const loadAgentDataToCanvas = (agentData, recordHistory = true) => {
+    const action = () => {
+        canvas.innerHTML = ''; // Clear canvas
+        if (agentData && agentData.length > 0) {
+            agentData.forEach(blockData => {
+                const newBlock = createBlockElement(blockData);
+                canvas.appendChild(newBlock);
+            });
+        }
+        updateCanvasPlaceholder();
+    };
+
+    if (recordHistory) {
+        recordCanvasChange(action);
+    } else {
+        action();
+    }
+};
+
+const saveAgent = async () => {
+    if (!userId) {
+        showToast("User not authenticated. Please wait.", "error");
+        return;
+    }
+
+    showSavePrompt(async (agentName) => {
+        const agentData = getAgentDataFromCanvas();
+        if (agentData.length === 0) {
+            showToast("Cannot save an empty canvas.", "error");
+            return;
+        }
+
+        const docRef = doc(db, `artifacts/${appId}/public/data/agents`, agentName);
+        try {
+            await setDoc(docRef, { name: agentName, data: agentData, createdAt: new Date() });
+            showToast(`Agent '${agentName}' saved successfully!`, "success");
+        } catch (error) {
+            console.error("Error saving agent:", error);
+            showToast("Failed to save agent.", "error");
+        }
+    });
+};
+
+const loadAgent = async (agentName) => {
+    if (!userId) {
+        showToast("User not authenticated. Please wait.", "error");
+        return;
+    }
+    const docRef = doc(db, `artifacts/${appId}/public/data/agents`, agentName);
+    try {
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            const agent = docSnap.data();
+            loadAgentDataToCanvas(agent.data);
+            showToast(`Agent '${agentName}' loaded.`, "info");
+        } else {
+            showToast("Agent not found.", "error");
+        }
+    } catch (error) {
+        console.error("Error loading agent:", error);
+        showToast("Failed to load agent.", "error");
+    }
+};
+
+const deleteAgent = async (agentName) => {
+    if (!userId) {
+        showToast("User not authenticated. Please wait.", "error");
+        return;
+    }
+
+    showConfirm(`Are you sure you want to delete the agent '${agentName}'? This cannot be undone.`, async () => {
+        const docRef = doc(db, `artifacts/${appId}/public/data/agents`, agentName);
+        try {
+            await deleteDoc(docRef);
+            showToast(`Agent '${agentName}' deleted.`, "success");
+            // The onSnapshot listener will automatically update the UI
+        } catch (e) {
+            console.error("Error deleting agent: ", e);
+            showToast("Failed to delete agent.", "error");
+        }
+    });
+}
+
+const setupRealtimeListener = () => {
+     if (!userId) return;
+     const agentsCol = collection(db, `artifacts/${appId}/public/data/agents`);
+     onSnapshot(agentsCol, (snapshot) => {
+        const agents = [];
+        snapshot.forEach((doc) => agents.push(doc.data()));
+
+        agents.sort((a,b) => a.name.localeCompare(b.name));
+
+        const container = document.getElementById('load-container');
+        if (!container) return; // Exit if container not there
+
+        let dropdownHTML = '';
+        if(agents.length > 0) {
+            dropdownHTML = `
+                <div class="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-gray-700 ring-1 ring-black ring-opacity-5 z-10 hidden">
+                  <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+            `;
+            agents.forEach(agent => {
+                dropdownHTML += `
+                    <div class="flex justify-between items-center px-4 py-2 text-sm text-gray-200 hover:bg-gray-600 w-full text-left" role="menuitem">
+                        <button class="flex-grow text-left load-agent-item" data-agent-name="${agent.name}">${agent.name}</button>
+                        <button class="delete-agent-item text-gray-400 hover:text-red-400" data-agent-name="${agent.name}"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                `;
+            });
+            dropdownHTML += `</div></div>`;
+        }
+
+        container.innerHTML = `
+            <button id="load-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md transition-colors shadow-lg ${agents.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}" ${agents.length === 0 ? 'disabled' : ''}>
+                <i class="fas fa-folder-open mr-2"></i>Load
+            </button>
+            ${dropdownHTML}
+        `;
+
+        const loadBtn = document.getElementById('load-btn');
+        const dropdown = container.querySelector('.absolute');
+
+        if (loadBtn && dropdown) {
+            loadBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                dropdown.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', (e) => {
+                 if (!container.contains(e.target)) {
+                    dropdown.classList.add('hidden');
+                 }
+            });
+
+            container.querySelectorAll('.load-agent-item').forEach(item => {
+                item.addEventListener('click', () => loadAgent(item.dataset.agentName));
+            });
+
+            container.querySelectorAll('.delete-agent-item').forEach(item => {
+               item.addEventListener('click', (e) => {
+                   e.stopPropagation();
+                   deleteAgent(item.dataset.agentName);
+               });
+           });
+        }
+    });
+};
+
+// --- Button Creation ---
+// A wrapper for actions that modify the canvas to ensure history is saved.
+const recordCanvasChange = (action) => {
+    action(); // Perform the action
+    const currentState = getAgentDataFromCanvas();
+    historyManager.pushState(currentState);
+};
+
+const createMainButtons = () => {
+    mainActionsContainer.innerHTML = `
+        <div class="flex items-center space-x-1 bg-gray-700/50 rounded-md p-1">
+            <button id="undo-btn" title="Undo (Ctrl+Z)" class="text-white font-bold py-1 px-3 rounded-md transition-colors hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"><i class="fas fa-undo"></i></button>
+            <button id="redo-btn" title="Redo (Ctrl+Y)" class="text-white font-bold py-1 px-3 rounded-md transition-colors hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"><i class="fas fa-redo"></i></button>
+        </div>
+        <div class="h-6 w-px bg-gray-700"></div>
+        <div id="file-menu-container" class="relative">
+            <button id="file-menu-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md transition-colors shadow-lg"><i class="fas fa-file-alt mr-2"></i>File</button>
+            <div id="file-menu-dropdown" class="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-gray-700 ring-1 ring-black ring-opacity-5 z-10 hidden">
+                <div class="py-1" role="menu" aria-orientation="vertical">
+                    <a href="#" id="import-btn" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600" role="menuitem"><i class="fas fa-file-import mr-2"></i>Import from JSON</a>
+                    <a href="#" id="export-btn" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600" role="menuitem"><i class="fas fa-file-export mr-2"></i>Export to JSON</a>
+                </div>
+            </div>
+        </div>
+        <input type="file" id="import-file-input" class="hidden" accept=".json">
+
+        <button id="save-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-colors shadow-lg"><i class="fas fa-save mr-2"></i>Save (Cloud)</button>
+        <div id="load-container" class="relative"></div> <!-- Container for load button and dropdown -->
+        <button id="generate-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md transition-colors shadow-lg"><i class="fas fa-cogs mr-2"></i>Generate Prompt</button>
+        <button id="clear-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md transition-colors shadow-lg"><i class="fas fa-trash mr-2"></i>Clear</button>
+        <div class="h-6 w-px bg-gray-700"></div>
+        <button id="help-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md transition-colors shadow-lg"><i class="fas fa-question-circle mr-2"></i>Help</button>
+    `;
+    // Re-assign listeners after creating them
+    document.getElementById('save-btn').addEventListener('click', saveAgent);
+    document.getElementById('generate-btn').addEventListener('click', generatePrompt);
+    document.getElementById('help-btn').addEventListener('click', () => openModal(document.getElementById('help-modal')));
+
+    document.getElementById('clear-btn').addEventListener('click', () => {
+        showConfirm('Are you sure you want to clear the entire canvas? This action cannot be undone.', () => {
+            recordCanvasChange(() => {
+                canvas.innerHTML = '';
+                updateCanvasPlaceholder();
+            });
+            showToast('Canvas cleared.', 'info');
+        });
+    });
+
+    document.getElementById('undo-btn').addEventListener('click', () => {
+        const prevState = historyManager.undo();
+        if (prevState) {
+            loadAgentDataToCanvas(prevState, false); // false to not record history
+        }
+    });
+
+    document.getElementById('redo-btn').addEventListener('click', () => {
+        const nextState = historyManager.redo();
+        if (nextState) {
+            loadAgentDataToCanvas(nextState, false); // false to not record history
+        }
+    });
+
+    // --- File Menu Logic ---
+    const fileMenuBtn = document.getElementById('file-menu-btn');
+    const fileMenuDropdown = document.getElementById('file-menu-dropdown');
+    const importBtn = document.getElementById('import-btn');
+    const exportBtn = document.getElementById('export-btn');
+    const importFileInput = document.getElementById('import-file-input');
+
+    fileMenuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fileMenuDropdown.classList.toggle('hidden');
+    });
+
+    document.addEventListener('click', () => {
+        if (!fileMenuDropdown.classList.contains('hidden')) {
+            fileMenuDropdown.classList.add('hidden');
+        }
+    });
+
+    exportBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const agentData = getAgentDataFromCanvas();
+        if (agentData.length === 0) {
+            showToast("Canvas is empty, nothing to export.", "error");
+            return;
+        }
+        const jsonString = JSON.stringify(agentData, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'agent-config.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        fileMenuDropdown.classList.add('hidden');
+        showToast("Agent exported successfully!", "success");
+    });
+
+    importBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        importFileInput.click();
+    });
+
+    importFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const data = JSON.parse(event.target.result);
+                // Basic validation
+                if (!Array.isArray(data)) {
+                    throw new Error("Invalid format: JSON is not an array.");
+                }
+                loadAgentDataToCanvas(data);
+                showToast("Agent imported successfully!", "success");
+            } catch (error) {
+                console.error("Error importing file:", error);
+                showToast(`Import failed: ${error.message}`, "error");
+            } finally {
+                // Reset file input to allow importing the same file again
+                importFileInput.value = '';
+                fileMenuDropdown.classList.add('hidden');
+            }
+        };
+        reader.readAsText(file);
+    });
+}
+
+
+// --- Event Listeners ---
+modalSaveBtn.addEventListener('click', saveModalChanges);
+closeModalBtn.addEventListener('click', closeEditModal);
+modalCancelBtn.addEventListener('click', closeEditModal);
+editModalBackdrop.addEventListener('click', closeEditModal);
+
+closePromptModalBtn.addEventListener('click', () => closeModal(promptModal));
+promptDoneBtn.addEventListener('click', () => closeModal(promptModal));
+promptModalBackdrop.addEventListener('click', () => closeModal(promptModal));
+
+copyPromptBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(promptOutput.textContent).then(() => {
+        copyPromptBtn.innerHTML = '<i class="fas fa-check mr-1"></i> Copied!';
+        setTimeout(() => {
+            copyPromptBtn.innerHTML = '<i class="fas fa-copy mr-1"></i> Copy';
+        }, 2000);
+    }).catch(err => {
+        console.error('Failed to copy text: ', err);
+        // Fallback for older browsers
+        const tempTextArea = document.createElement('textarea');
+        tempTextArea.value = promptOutput.textContent;
+        document.body.appendChild(tempTextArea);
+        tempTextArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempTextArea);
+        copyPromptBtn.innerHTML = '<i class="fas fa-check mr-1"></i> Copied!';
+        setTimeout(() => {
+            copyPromptBtn.innerHTML = '<i class="fas fa-copy mr-1"></i> Copy';
+        }, 2000);
+    });
+});
+
+// --- Help Modal Logic ---
+const guideContent = {
+    title: "User Guide",
+    sections: [
+        {
+            title: "Building Your Agent",
+            content: "Drag component blocks from the toolbox on the left onto the canvas. Arrange them in the order you want the agent to process the instructions."
+        },
+        {
+            title: "Editing Blocks",
+            content: "Click the pencil icon (<i class='fas fa-pencil-alt'></i>) on any block to open the editor. Write your instructions in the text area and click 'Save Changes'."
+        },
+        {
+            title: "Reordering & Deleting",
+            content: "Click and drag any block on the canvas to reorder it. To remove a block, click the trash can icon (<i class='fas fa-trash-alt'></i>)."
+        },
+        {
+            title: "Collapsing Blocks",
+            content: "Click the chevron icon (<i class='fas fa-chevron-up'></i>) to collapse or expand a block. This is useful for managing long lists of instructions."
+        },
+        {
+            title: "Undo & Redo",
+            content: "Made a mistake? Use the Undo (<i class='fas fa-undo'></i>) and Redo (<i class='fas fa-redo'></i>) buttons to step backward or forward through your changes."
+        },
+        {
+            title: "Saving & Loading",
+            content: "<ul><li><b>Save (Cloud):</b> Saves your current configuration to your account online.</li><li><b>Load:</b> Loads a previously saved configuration from the cloud.</li><li><b>File Menu:</b> Use the 'File' menu to 'Export' your agent to a local JSON file or 'Import' one from your device. This is great for backups and sharing.</li></ul>"
+        },
+        {
+            title: "Generating the Prompt",
+            content: "When you're done, click 'Generate Prompt'. This compiles all your blocks into a single, structured prompt that you can copy and use."
+        }
+    ]
+};
+
+const examples = [
+    {
+        name: "Creative Writing Assistant",
+        description: "A persona-driven assistant to help brainstorm story ideas.",
+        data: [
+            { id: "b1", type: "persona", title: "Persona / Role", icon: "fa-user-astronaut", content: "You are a world-class fiction author and creative partner. Your goal is to help the user build compelling stories by asking insightful questions and providing imaginative ideas. Your tone is encouraging and inspiring." },
+            { id: "b2", type: "goal", title: "Primary Goal", icon: "fa-bullseye", content: "Help the user develop a high-concept idea for a science fiction novel. Brainstorm a protagonist, a core conflict, and a unique setting." },
+            { id: "b3", type: "rule", title: "Strict Rule / Constraint", icon: "fa-gavel", content: "Do not write the story for the user. Only provide ideas, prompts, and guiding questions." },
+            { id: "b4", type: "output", title: "Output Format", icon: "fa-code", content: "Provide your response as a markdown-formatted document with three sections: 'Protagonist Ideas', 'Conflict Scenarios', and 'Setting Concepts'." }
+        ]
+    },
+    {
+        name: "Code Review Bot",
+        description: "An automated assistant that reviews code for common issues.",
+        data: [
+            { id: "c1", type: "persona", title: "Persona / Role", icon: "fa-user-astronaut", content: "You are an automated code review assistant. You are precise, and your feedback is constructive." },
+            { id: "c2", type: "knowledge", title: "Knowledge Base", icon: "fa-book", content: "Your knowledge is based on the official documentation for Python, JavaScript, and general software engineering best practices for writing clean, maintainable code." },
+            { id: "c3", type: "goal", title: "Primary Goal", icon: "fa-bullseye", content: "Review the provided code snippet. Identify potential bugs, style violations (based on PEP 8 for Python), and areas where readability could be improved. You must provide code examples for your suggestions." },
+            { id: "c4", type: "output", title: "Output Format", icon: "fa-code", content: "Provide your review as a list of issues. Each issue should have a 'Severity' (High, Medium, Low), a 'Description', and a 'Suggested Fix' with a code example." }
+        ]
+    }
+];
+
+const initHelpModal = () => {
+    const guideContainer = document.getElementById('guide-content');
+    guideContainer.innerHTML = `<h2 class="text-2xl font-bold text-white mb-6">${guideContent.title}</h2>` +
+        guideContent.sections.map(s => `
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-blue-400 mb-2">${s.title}</h3>
+                <p class="text-gray-300 leading-relaxed">${s.content}</p>
+            </div>
+        `).join('');
+
+    const examplesContainer = document.getElementById('examples-content');
+    examplesContainer.innerHTML = `<h2 class="text-2xl font-bold text-white mb-6">Examples</h2>` +
+        examples.map(e => `
+            <div class="bg-gray-700/50 p-4 rounded-lg mb-4">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-lg font-semibold text-green-400">${e.name}</h3>
+                        <p class="text-sm text-gray-400">${e.description}</p>
+                    </div>
+                    <button class="load-example-btn bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-colors" data-example-name="${e.name}">Load</button>
+                </div>
+            </div>
+        `).join('');
+
+    document.querySelectorAll('.load-example-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const example = examples.find(e => e.name === btn.dataset.exampleName);
+            if (example) {
+                showConfirm("Loading an example will clear your current canvas. Are you sure?", () => {
+                    loadAgentDataToCanvas(example.data);
+                    closeModal(document.getElementById('help-modal'));
+                    showToast(`Example '${example.name}' loaded!`, 'success');
+                });
+            }
+        });
+    });
+
+    const helpTabs = document.querySelectorAll('.help-tab-btn');
+    const helpContents = document.querySelectorAll('.help-tab-content');
+    helpTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            helpTabs.forEach(t => t.classList.remove('bg-blue-600/50', 'text-white'));
+            tab.classList.add('bg-blue-600/50', 'text-white');
+
+            helpContents.forEach(c => c.classList.add('hidden'));
+            document.getElementById(`${tab.dataset.tab}-content`).classList.remove('hidden');
+        });
+    });
+
+    document.getElementById('close-help-modal-btn').addEventListener('click', () => closeModal(document.getElementById('help-modal')));
+};
+
+
+// --- Initial Call ---
+createMainButtons();
+updateCanvasPlaceholder();
+initDragAndDrop(); // Initialize the new drag and drop system
+historyManager.init(getAgentDataFromCanvas()); // Set initial state for undo/redo
+initHelpModal();
+// Initial call to setup listener is handled by onAuthStateChanged
