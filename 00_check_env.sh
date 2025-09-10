@@ -23,7 +23,14 @@ C_BLUE='\033[0;34m'
 C_RESET='\033[0m'
 
 # --- Logging ---
-# Usage: log "INFO" "Message"
+
+# Logs a message with a status level (OK, WARN, FAIL, INFO).
+#
+# Globals:
+#   C_GREEN, C_YELLOW, C_RED, C_BLUE, C_RESET
+# Arguments:
+#   $1: The status level.
+#   $2: The message to log.
 log() {
     local level_color
     case "$1" in
@@ -37,6 +44,15 @@ log() {
 }
 
 # --- Main Logic ---
+
+# Main function to check for dependencies, internet connectivity, and API keys.
+# It reports the status of each check and exits with a non-zero status if
+# critical components are missing.
+#
+# Globals:
+#   OPENAI_API_KEY, GEMINI_API_KEY
+# Arguments:
+#   None
 main() {
     log "INFO" "Starting Termux AI Toolkit environment check..."
     local all_ok=1 # Flag to track overall status

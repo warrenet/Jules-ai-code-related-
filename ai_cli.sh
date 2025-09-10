@@ -35,7 +35,16 @@ if [ -f "$CONFIG_FILE" ]; then
 fi
 
 # --- Helper Functions ---
-# Usage: log "LEVEL" "message"
+
+# Logs a message to stderr with a timestamp and color-coded level.
+#
+# Globals:
+#   None
+# Arguments:
+#   $1: Log level (e.g., INFO, WARN, ERROR).
+#   $2: Message to log.
+# Outputs:
+#   Writes a formatted and colored log message to stderr.
 log() {
     local level="$1" msg="$2" color
     case "$level" in
@@ -47,15 +56,40 @@ log() {
     printf >&2 "${color}[%s] %s: %s\033[0m\n" "$(date +'%H:%M:%S')" "$level" "$msg"
 }
 
+# Logs an error message and exits the script with a non-zero status.
+#
+# Globals:
+#   None
+# Arguments:
+#   $1: The error message to display.
+# Outputs:
+#   Writes an error message to stderr and terminates the script.
 die() {
     log "ERROR" "$1"
     exit 1
 }
 
+# Checks if a command exists in the system's PATH.
+# If the command is not found, it logs an error and exits.
+#
+# Globals:
+#   None
+# Arguments:
+#   $1: The name of the command to check (e.g., "curl").
+# Outputs:
+#   Writes an error message to stderr and exits if the command is not found.
 require_cmd() {
     command -v "$1" >/dev/null || die "Required command '$1' not found. Please install it. Example: pkg install $1"
 }
 
+# Displays the script's usage information and exits.
+#
+# Globals:
+#   SCRIPT_NAME
+# Arguments:
+#   None
+# Outputs:
+#   Writes the help message to stdout.
 usage() {
     echo "Termux AI Universal CLI"
     echo ""
@@ -82,6 +116,20 @@ usage() {
 
 # --- Provider API Call Functions ---
 
+# Makes a streaming API call to the OpenAI Chat Completions endpoint.
+# It streams the response directly to stdout for real-time output and
+# captures the full response to be returned.
+#
+# Globals:
+#   AI_TIMEOUT
+# Arguments:
+#   $1: The user prompt.
+#   $2: The system prompt (optional).
+#   $3: The model name to use.
+#   $4: The OpenAI API key.
+# Outputs:
+#   Streams the AI's response chunks to stdout.
+#   Returns the complete, concatenated response as a string.
 openai_call() {
     local prompt="$1" system_prompt="$2" model="$3" api_key="$4"
     log "INFO" "Using OpenAI provider with model '$model'"
@@ -123,6 +171,20 @@ openai_call() {
     echo "$full_response"
 }
 
+# Makes a streaming API call to the Google Gemini API endpoint.
+# It streams the response directly to stdout for real-time output and
+# captures the full response to be returned.
+#
+# Globals:
+#   AI_TIMEOUT
+# Arguments:
+#   $1: The user prompt.
+#   $2: The system prompt (optional).
+#   $3: The model name to use.
+#   $4: The Google API key.
+# Outputs:
+#   Streams the AI's response chunks to stdout.
+#   Returns the complete, concatenated response as a string.
 gemini_call() {
     local prompt="$1" system_prompt="$2" model="$3" api_key="$4"
     log "INFO" "Using Gemini provider with model '$model'"
@@ -165,6 +227,18 @@ gemini_call() {
 }
 
 # --- Main Logic ---
+
+# The main entry point for the script.
+# Parses command-line arguments, validates input, determines which AI provider
+# and model to use, handles the API call, and saves the output.
+#
+# Globals:
+#   PROVIDER, MODEL_OPENAI, MODEL_GEMINI, DRY_RUN, AI_TIMEOUT,
+#   OPENAI_API_KEY, GEMINI_API_KEY
+# Arguments:
+#   $@: The command-line arguments passed to the script.
+# Outputs:
+#   Writes the AI's response to stdout and potentially to a file.
 main() {
     # --- Check dependencies ---
     require_cmd "jq"

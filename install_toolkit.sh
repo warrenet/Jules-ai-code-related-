@@ -7,6 +7,10 @@
 #
 # To run, simply copy this entire script and paste it into your Termux terminal.
 #
+# This script is a self-extracting installer. It contains all the necessary
+# scripts and documentation as HEREDOCs and unpacks them into the installation
+# directory. This makes it easy to distribute the entire toolkit as a single file.
+#
 
 set -eu
 
