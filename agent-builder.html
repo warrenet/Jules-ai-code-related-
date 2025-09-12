@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Builder</title>
+    <!-- Tailwind CSS - I'll use the play CDN for simplicity in this single-file setup -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SortableJS for drag-and-drop -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js" defer></script>
+    <style>
+        :root {
+            --bg-primary: #111827; /* gray-900 */
+            --bg-secondary: #1f2937; /* gray-800 */
+            --bg-tertiary: #374151; /* gray-700 */
+            --bg-interactive: #4b5563; /* gray-600 */
+            --bg-interactive-hover: #6b7280; /* gray-500 */
+
+            --text-primary: #f9fafb; /* gray-50 */
+            --text-secondary: #d1d5db; /* gray-300 */
+            --text-tertiary: #9ca3af; /* gray-400 */
+            --text-placeholder: #6b7280; /* gray-500 */
+
+            --border-primary: #374151; /* gray-700 */
+            --border-secondary: #4b5563; /* gray-600 */
+            --border-interactive: #6b7280; /* gray-500 */
+            --border-dashed: #4b5563; /* gray-600 */
+
+            --ring-focus: #3b82f6; /* blue-500 */
+            --ring-backdrop: rgba(0, 0, 0, 0.5);
+
+            --color-blue-bg: rgba(59, 130, 246, 0.1);
+            --color-blue-border: rgba(59, 130, 246, 0.5);
+            --color-blue-text: #60a5fa; /* blue-400 */
+            --color-blue-action: #2563eb; /* blue-600 */
+            --color-blue-action-hover: #1d4ed8; /* blue-700 */
+
+            --color-green-bg: rgba(22, 163, 74, 0.1);
+            --color-green-border: rgba(22, 163, 74, 0.5);
+            --color-green-text: #4ade80; /* green-400 */
+            --color-green-action: #16a34a; /* green-600 */
+            --color-green-action-hover: #15803d; /* green-700 */
+
+            --color-red-bg: rgba(220, 38, 38, 0.1);
+            --color-red-border: rgba(220, 38, 38, 0.5);
+            --color-red-text: #f87171; /* red-400 */
+            --color-red-action: #dc2626; /* red-600 */
+            --color-red-action-hover: #b91c1c; /* red-700 */
+
+            --color-purple-bg: rgba(139, 92, 246, 0.1);
+            --color-purple-border: rgba(139, 92, 246, 0.5);
+            --color-purple-text: #a78bfa; /* purple-400 */
+
+            --color-yellow-bg: rgba(234, 179, 8, 0.1);
+            --color-yellow-border: rgba(234, 179, 8, 0.5);
+            --color-yellow-text: #facc15; /* yellow-400 */
+
+            --color-teal-bg: rgba(20, 184, 166, 0.1);
+            --color-teal-border: rgba(20, 184, 166, 0.5);
+            --color-teal-text: #5eead4; /* teal-400 */
+
+            --color-gray-bg: rgba(107, 114, 128, 0.1);
+            --color-gray-border: rgba(107, 114, 128, 0.5);
+            --color-gray-text: #9ca3af; /* gray-400 */
+        }
+        body.light {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9fafb; /* gray-50 */
+            --bg-tertiary: #f3f4f6; /* gray-100 */
+            --bg-interactive: #e5e7eb; /* gray-200 */
+            --bg-interactive-hover: #d1d5db; /* gray-300 */
+
+            --text-primary: #1f2937; /* gray-800 */
+            --text-secondary: #374151; /* gray-700 */
+            --text-tertiary: #6b7280; /* gray-500 */
+            --text-placeholder: #9ca3af; /* gray-400 */
+
+            --border-primary: #e5e7eb; /* gray-200 */
+            --border-secondary: #d1d5db; /* gray-300 */
+            --border-interactive: #9ca3af; /* gray-400 */
+            --border-dashed: #d1d5db; /* gray-300 */
+
+            --ring-focus: #2563eb; /* blue-600 */
+        }
+        /* A more modern, dark-themed scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--bg-tertiary); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--bg-interactive); }
+
+        /* Base styles for modals to be controlled by JS */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            animation: fadeIn 0.3s forwards;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: fadeInScale 0.3s forwards;
+        }
+        .modal.show, .modal-backdrop.show {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: translate(-50%, -45%) scale(0.95); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        /* Helper for word wrapping in pre tags */
+        .word-wrap {
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* Styles for collapsible blocks */
+        .canvas-item .collapsible-content {
+            max-height: 500px; /* A large enough value to not clip content */
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, margin-top 0.3s ease-out;
+        }
+        .canvas-item.is-collapsed .collapsible-content {
+            max-height: 0;
+        }
+        .canvas-item .collapse-btn i {
+            transition: transform 0.3s ease-out;
+        }
+        .canvas-item.is-collapsed .collapse-btn i {
+            transform: rotate(-90deg);
+        }
+
+        /* Styles for Toast Notifications */
+        @keyframes toast-in {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes toast-out {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+        .animate-toast-in {
+            animation: toast-in 0.3s ease-out forwards;
+        }
+        .animate-toast-out {
+            animation: toast-out 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-[var(--bg-primary)] text-[var(--text-primary)] font-sans flex h-screen antialiased">
+
+<div class="flex w-full h-full">
+    <!-- Toolbox (Left Sidebar) -->
+    <aside id="toolbox" class="w-full md:w-72 lg:w-80 bg-[var(--bg-secondary)]/50 flex flex-col border-r border-[var(--border-primary)]/50">
+        <!-- Tab Buttons -->
+        <div class="flex border-b border-[var(--border-primary)]/50">
+            <button class="toolbox-tab-btn flex-1 py-2 px-4 text-sm font-semibold transition-colors border-b-2" data-tab="blocks"><i class="fas fa-cubes mr-2"></i>Blocks</button>
+            <button class="toolbox-tab-btn flex-1 py-2 px-4 text-sm font-semibold transition-colors border-b-2" data-tab="variables"><i class="fas fa-at mr-2"></i>Variables</button>
+        </div>
+
+        <div class="flex-grow p-4 overflow-y-auto">
+            <!-- Blocks Tab Content -->
+            <div id="blocks-tab-content" class="toolbox-tab-content">
+                <p class="text-xs text-[var(--text-tertiary)] mb-6">Drag these blocks onto the canvas to build your agent's instructions.</p>
+                <div class="space-y-3">
+                    <!-- Draggable Items -->
+                    <div class="toolbox-item bg-[var(--color-blue-bg)] border border-[var(--color-blue-border)] rounded-lg p-3 shadow-md cursor-grab active:cursor-grabbing" draggable="true" data-type="persona" data-title="Persona / Role" data-icon="fa-user-astronaut" data-placeholder="Define the agent's core identity. E.g., 'You are a helpful assistant specialized in creative writing.'">
+                        <h3 class="font-semibold"><i class="fas fa-user-astronaut mr-2 text-[var(--color-blue-text)]"></i>Persona / Role</h3>
+                    </div>
+                    <div class="toolbox-item bg-[var(--color-green-bg)] border border-[var(--color-green-border)] rounded-lg p-3 shadow-md cursor-grab active:cursor-grabbing" draggable="true" data-type="goal" data-title="Primary Goal" data-icon="fa-bullseye" data-placeholder="Describe the agent's main objective. E.g., 'Your primary goal is to help users brainstorm ideas for their novels.'">
+                        <h3 class="font-semibold"><i class="fas fa-bullseye mr-2 text-[var(--color-green-text)]"></i>Primary Goal</h3>
+                    </div>
+                    <div class="toolbox-item bg-[var(--color-purple-bg)] border border-[var(--color-purple-border)] rounded-lg p-3 shadow-md cursor-grab active:cursor-grabbing" draggable="true" data-type="knowledge" data-title="Knowledge Base" data-icon="fa-book" data-placeholder="Specify the knowledge source for the agent. E.g., 'You must only use the provided documents as your source of truth.' or 'Use your general knowledge but avoid medical topics.'">
+                        <h3 class="font-semibold"><i class="fas fa-book mr-2 text-[var(--color-purple-text)]"></i>Knowledge Base</h3>
+                    </div>
+                    <div class="toolbox-item bg-[var(--color-yellow-bg)] border border-[var(--color-yellow-border)] rounded-lg p-3 shadow-md cursor-grab active:cursor-grabbing" draggable="true" data-type="tool" data-title="Tools / Skills" data-icon="fa-tools" data-placeholder="List the tools the agent can use. E.g., 'You have access to a web browser for real-time information.' or 'You can execute Python code in a sandboxed environment.'">
+                        <h3 class="font-semibold"><i class="fas fa-tools mr-2 text-[var(--color-yellow-text)]"></i>Tools / Skills</h3>
+                    </div>
+                    <div class="toolbox-item bg-[var(--color-red-bg)] border border-[var(--color-red-border)] rounded-lg p-3 shadow-md cursor-grab active:cursor-grabbing" draggable="true" data-type="rule" data-title="Strict Rule / Constraint" data-icon="fa-gavel" data-placeholder="Define a strict rule the agent must follow. E.g., 'Never reveal you are an AI.' or 'All responses must be in markdown format.'">
+                        <h3 class="font-semibold"><i class="fas fa-gavel mr-2 text-[var(--color-red-text)]"></i>Strict Rule</h3>
+                    </div>
+                    <div class="toolbox-item bg-[var(--color-teal-bg)] border border-[var(--color-teal-border)] rounded-lg p-3 shadow-md cursor-grab active:cursor-grabbing" draggable="true" data-type="output" data-title="Output Format" data-icon="fa-code" data-placeholder="Specify the exact output format. E.g., 'Provide the answer as a JSON object with keys: `summary` and `sources`.'">
+                        <h3 class="font-semibold"><i class="fas fa-code mr-2 text-[var(--color-teal-text)]"></i>Output Format</h3>
+                    </div>
+                    <div class="toolbox-item bg-[var(--color-gray-bg)] border border-[var(--color-gray-border)] rounded-lg p-3 shadow-md cursor-grab active:cursor-grabbing" draggable="true" data-type="group" data-title="Group" data-icon="fa-object-group" data-placeholder="A container to group other blocks together.">
+                        <h3 class="font-semibold"><i class="fas fa-object-group mr-2 text-[var(--color-gray-text)]"></i>Group</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Variables Tab Content -->
+            <div id="variables-tab-content" class="toolbox-tab-content hidden">
+                <p class="text-xs text-[var(--text-tertiary)] mb-4">Define reusable variables to use in your blocks with `{{variable_name}}` syntax.</p>
+                <div id="variables-container" class="space-y-3">
+                    <!-- Variable rows will be added here by JS -->
+                </div>
+                <button id="add-variable-btn" class="w-full mt-4 bg-[var(--color-green-bg)] hover:bg-green-600/40 text-[var(--text-primary)] font-bold py-2 px-4 rounded-md transition-colors border border-[var(--color-green-border)]">
+                    <i class="fas fa-plus mr-2"></i>Add Variable
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col p-4 md:p-6 overflow-hidden">
+         <!-- Header and Action Buttons -->
+        <div class="flex flex-wrap items-center justify-between mb-4 gap-3">
+            <div>
+                <h1 class="text-2xl font-bold text-[var(--text-primary)]">Agent Canvas</h1>
+                <p class="text-sm text-[var(--text-tertiary)]">Design your agent's logic here.</p>
+            </div>
+            <div id="main-actions" class="flex items-center space-x-2">
+                <!-- New buttons will be added here by JS -->
+            </div>
+        </div>
+        <!-- Canvas -->
+        <div id="canvas" class="canvas flex-1 w-full border-2 border-dashed border-[var(--border-dashed)] rounded-lg p-4 overflow-y-auto space-y-4">
+            <div id="canvas-placeholder" class="text-center text-[var(--text-placeholder)] h-full flex flex-col items-center justify-center">
+                <i class="fas fa-hand-pointer fa-2x mb-2"></i>
+                <p>Drag blocks from the left panel and drop them here!</p>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Edit Modal -->
+<div id="edit-modal-backdrop" class="modal-backdrop"></div>
+<div id="edit-modal" class="modal w-11/12 md:w-1/2 max-w-2xl bg-[var(--bg-secondary)] rounded-lg shadow-2xl border border-[var(--border-primary)]">
+    <div class="p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 id="modal-title" class="text-xl font-bold text-[var(--text-primary)]">Configure Block</h2>
+            <button id="close-modal-btn" class="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] text-2xl leading-none">&times;</button>
+        </div>
+        <div class="relative">
+            <textarea id="modal-textarea" class="w-full h-48 bg-[var(--bg-primary)] text-[var(--text-secondary)] border border-[var(--border-secondary)] rounded-md p-2 focus:ring-2 focus:ring-[var(--ring-focus)] focus:border-[var(--ring-focus)] transition"></textarea>
+            <button id="suggestion-btn" class="absolute top-2 right-2 p-1 text-[var(--text-tertiary)] hover:text-[var(--color-purple-text)] hidden"><i class="fas fa-magic"></i></button>
+            <div id="suggestion-popover" class="absolute z-10 w-full bg-[var(--bg-tertiary)] p-2 rounded-md shadow-lg hidden">
+                <p id="suggestion-text" class="text-sm text-[var(--text-primary)]"></p>
+                <button id="apply-suggestion-btn" class="mt-2 w-full bg-[var(--color-blue-action)] hover:bg-[var(--color-blue-action-hover)] text-white text-xs font-bold py-1 px-2 rounded">Apply Suggestion</button>
+            </div>
+        </div>
+        <div class="mt-4 flex justify-end space-x-2">
+            <button id="modal-cancel-btn" class="bg-[var(--bg-interactive)] hover:bg-[var(--bg-interactive-hover)] text-[var(--text-primary)] font-bold py-2 px-4 rounded-md transition-colors">Cancel</button>
+            <button id="modal-save-btn" class="bg-[var(--color-blue-action)] hover:bg-[var(--color-blue-action-hover)] text-[var(--text-primary)] font-bold py-2 px-4 rounded-md transition-colors">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<!-- Generated Prompt Modal -->
+<div id="prompt-modal-backdrop" class="modal-backdrop"></div>
+<div id="prompt-modal" class="modal w-11/12 md:w-2/3 max-w-4xl bg-[var(--bg-secondary)] rounded-lg shadow-2xl border border-[var(--border-primary)]">
+    <div class="p-6">
+         <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-[var(--text-primary)]">Generated Agent Prompt</h2>
+            <button id="close-prompt-modal-btn" class="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] text-2xl leading-none">&times;</button>
+        </div>
+        <div class="relative">
+            <pre id="prompt-output" class="w-full h-80 bg-[var(--bg-primary)] text-[var(--text-secondary)] border border-[var(--border-secondary)] rounded-md p-4 overflow-y-auto word-wrap"></pre>
+            <button id="copy-prompt-btn" class="absolute top-2 right-2 bg-[var(--bg-tertiary)] hover:bg-[var(--bg-interactive)] text-[var(--text-primary)] font-bold py-1 px-3 rounded-md text-sm transition-colors">
+                <i class="fas fa-copy mr-1"></i> Copy
+            </button>
+        </div>
+        <div class="mt-4 flex justify-between items-center">
+            <button id="playground-btn" class="bg-[var(--color-green-action)] hover:bg-[var(--color-green-action-hover)] text-[var(--text-primary)] font-bold py-2 px-4 rounded-md transition-colors"><i class="fas fa-vial mr-2"></i>Test in Playground</button>
+            <button id="prompt-done-btn" class="bg-[var(--bg-interactive)] hover:bg-[var(--bg-interactive-hover)] text-[var(--text-primary)] font-bold py-2 px-4 rounded-md transition-colors">Done</button>
+        </div>
+    </div>
+</div>
+
+<!-- Playground Modal -->
+<div id="playground-modal-backdrop" class="modal-backdrop"></div>
+<div id="playground-modal" class="modal w-11/12 md:w-3/4 max-w-5xl bg-[var(--bg-secondary)] rounded-lg shadow-2xl border border-[var(--border-primary)] flex flex-col" style="height: 90vh;">
+    <div class="p-4 border-b border-[var(--border-primary)]">
+        <div class="flex justify-between items-center">
+            <h2 class="text-xl font-bold text-[var(--text-primary)]"><i class="fas fa-vial mr-2"></i>Agent Playground</h2>
+            <button id="close-playground-modal-btn" class="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] text-2xl leading-none">&times;</button>
+        </div>
+        <div class="mt-2">
+            <label for="api-key-input" class="text-sm text-[var(--text-tertiary)]">Google Gemini API Key:</label>
+            <input id="api-key-input" type="password" placeholder="Enter your API key here" class="w-full mt-1 bg-[var(--bg-primary)] border border-[var(--border-secondary)] rounded-md p-2 text-sm focus:ring-1 focus:ring-[var(--ring-focus)]">
+        </div>
+        <div class="mt-4 flex items-center space-x-4">
+            <div>
+                <label for="model-select" class="text-sm text-[var(--text-tertiary)]">Model:</label>
+                <select id="model-select" class="mt-1 bg-[var(--bg-primary)] border border-[var(--border-secondary)] rounded-md p-2 text-sm focus:ring-1 focus:ring-[var(--ring-focus)]">
+                    <option>gemini-pro</option>
+                    <option>gemini-1.5-pro-latest</option>
+                </select>
+            </div>
+            <div class="flex-1">
+                <label for="temperature-slider" class="text-sm text-[var(--text-tertiary)]">Temperature: <span id="temperature-value">0.5</span></label>
+                <input id="temperature-slider" type="range" min="0" max="1" step="0.1" value="0.5" class="w-full mt-1 h-2 bg-[var(--bg-tertiary)] rounded-lg appearance-none cursor-pointer">
+            </div>
+        </div>
+    </div>
+    <div id="playground-chat-area" class="flex-1 p-4 overflow-y-auto space-y-4">
+        <!-- Chat messages will appear here -->
+    </div>
+    <div class="p-4 border-t border-[var(--border-primary)]">
+        <div class="flex items-center space-x-2">
+            <textarea id="playground-input" placeholder="Type your message..." class="w-full bg-[var(--bg-tertiary)] border border-[var(--border-secondary)] rounded-md p-2 text-sm focus:ring-1 focus:ring-[var(--ring-focus)] resize-none" rows="1"></textarea>
+            <button id="playground-send-btn" class="bg-[var(--color-blue-action)] hover:bg-[var(--color-blue-action-hover)] text-[var(--text-primary)] font-bold py-2 px-4 rounded-md transition-colors"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+</div>
+
+<!-- App Logic -->
+<script type="module" src="script.js" defer></script>
+
+<!-- Generic Confirmation Modal -->
+<div id="confirm-modal-backdrop" class="modal-backdrop"></div>
+<div id="confirm-modal" class="modal w-11/12 md:w-1/3 max-w-md bg-[var(--bg-secondary)] rounded-lg shadow-2xl border border-[var(--border-primary)]">
+    <div class="p-6">
+        <h2 id="confirm-modal-title" class="text-xl font-bold text-[var(--text-primary)] mb-4">Are you sure?</h2>
+        <p id="confirm-modal-text" class="text-[var(--text-secondary)] mb-6"></p>
+        <div class="mt-4 flex justify-end space-x-2">
+            <button id="confirm-modal-cancel-btn" class="bg-[var(--bg-interactive)] hover:bg-[var(--bg-interactive-hover)] text-[var(--text-primary)] font-bold py-2 px-4 rounded-md transition-colors">Cancel</button>
+            <button id="confirm-modal-ok-btn" class="bg-[var(--color-red-action)] hover:bg-[var(--color-red-action-hover)] text-[var(--text-primary)] font-bold py-2 px-4 rounded-md transition-colors">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- Save Agent Input Modal -->
+<div id="save-modal-backdrop" class="modal-backdrop"></div>
+<div id="save-modal" class="modal w-11/12 md:w-1/3 max-w-md bg-[var(--bg-secondary)] rounded-lg shadow-2xl border border-[var(--border-primary)]">
+    <div class="p-6">
+        <h2 class="text-xl font-bold text-[var(--text-primary)] mb-4">Save Agent</h2>
+        <p class="text-[var(--text-secondary)] mb-4">Enter a name for this agent configuration.</p>
+        <input id="save-modal-input" class="w-full bg-[var(--bg-primary)] text-[var(--text-secondary)] border border-[var(--border-secondary)] rounded-md p-2 focus:ring-2 focus:ring-[var(--ring-focus)]" type="text" placeholder="My Awesome Agent">
+        <div id="save-modal-error" class="text-[var(--color-red-text)] text-sm mt-2 hidden"></div>
+        <div class="mt-6 flex justify-end space-x-2">
+            <button id="save-modal-cancel-btn" class="bg-[var(--bg-interactive)] hover:bg-[var(--bg-interactive-hover)] text-[var(--text-primary)] font-bold py-2 px-4 rounded-md transition-colors">Cancel</button>
+            <button id="save-modal-save-btn" class="bg-[var(--color-blue-action)] hover:bg-[var(--color-blue-action-hover)] text-[var(--text-primary)] font-bold py-2 px-4 rounded-md transition-colors">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification Container -->
+<div id="toast-container" class="fixed bottom-5 right-5 space-y-3 z-50"></div>
+
+<!-- Help Modal -->
+<div id="help-modal-backdrop" class="modal-backdrop"></div>
+<div id="help-modal" class="modal w-11/12 md:w-2/3 max-w-4xl bg-[var(--bg-secondary)] rounded-lg shadow-2xl border border-[var(--border-primary)] flex flex-col" style="height: 80vh;">
+    <div class="p-4 border-b border-[var(--border-primary)] flex justify-between items-center">
+        <h2 class="text-xl font-bold text-[var(--text-primary)]"><i class="fas fa-question-circle mr-2"></i>Help & Examples</h2>
+        <button id="close-help-modal-btn" class="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] text-2xl leading-none">&times;</button>
+    </div>
+    <div class="flex-grow flex flex-col md:flex-row overflow-hidden">
+        <!-- Tabs -->
+        <div class="w-full md:w-48 p-4 border-b md:border-b-0 md:border-r border-[var(--border-primary)]">
+            <nav class="space-y-2">
+                <button class="help-tab-btn w-full text-left font-bold py-2 px-3 rounded-md transition-colors bg-[var(--color-blue-bg)] text-[var(--text-primary)]" data-tab="guide">
+                    <i class="fas fa-book mr-2"></i>User Guide
+                </button>
+                <button class="help-tab-btn w-full text-left font-bold py-2 px-3 rounded-md transition-colors hover:bg-[var(--color-blue-bg)]" data-tab="examples">
+                    <i class="fas fa-lightbulb mr-2"></i>Examples
+                </button>
+            </nav>
+        </div>
+        <!-- Content -->
+        <div class="flex-1 p-6 overflow-y-auto">
+            <!-- Guide Content -->
+            <div id="guide-content" class="help-tab-content">
+                <!-- Content will be added by JS -->
+            </div>
+            <!-- Examples Content -->
+            <div id="examples-content" class="help-tab-content hidden">
+                <!-- Content will be added by JS -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Command Palette Modal -->
+<div id="command-palette-backdrop" class="modal-backdrop"></div>
+<div id="command-palette-modal" class="modal w-11/12 md:w-1/2 max-w-2xl bg-[var(--bg-secondary)] rounded-lg shadow-2xl border border-[var(--border-primary)] flex flex-col" style="height: 60vh;">
+    <div class="p-2 border-b border-[var(--border-primary)]">
+        <input id="command-palette-input" type="text" placeholder="Type a command or search..." class="w-full bg-transparent text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none p-2">
+    </div>
+    <div id="command-palette-results" class="flex-1 overflow-y-auto p-2">
+        <!-- Search results will be populated here -->
+    </div>
+</div>
+
+<!-- Version History Modal -->
+<div id="versions-modal-backdrop" class="modal-backdrop"></div>
+<div id="versions-modal" class="modal w-11/12 md:w-1/2 max-w-2xl bg-[var(--bg-secondary)] rounded-lg shadow-2xl border border-[var(--border-primary)] flex flex-col" style="height: 70vh;">
+    <div class="p-4 border-b border-[var(--border-primary)] flex justify-between items-center">
+        <h2 id="versions-modal-title" class="text-xl font-bold text-[var(--text-primary)]">Version History</h2>
+        <button id="close-versions-modal-btn" class="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] text-2xl leading-none">&times;</button>
+    </div>
+    <div id="versions-list-container" class="flex-1 p-4 overflow-y-auto space-y-2">
+        <!-- Version list will be populated here -->
+    </div>
+</div>
+
+
+</body>
+</html>
