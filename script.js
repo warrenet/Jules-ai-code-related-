@@ -72,7 +72,9 @@ let loadContainer; // Will be created dynamically
 
 let currentEditingBlock = null;
 
-// --- History Management ---
+// ---
+// History Management: Handles undo/redo functionality by storing snapshots of the canvas state.
+// ---
 const historyManager = {
     history: [],
     historyIndex: -1,
@@ -130,7 +132,9 @@ const historyManager = {
     }
 };
 
-// --- Core Functions ---
+// ---
+// Core Functions: Main application logic for creating and managing blocks and modals.
+// ---
 const updateCanvasPlaceholder = () => {
     const hasItems = canvas.querySelector('.canvas-item');
     canvasPlaceholder.style.display = hasItems ? 'none' : 'flex';
@@ -263,7 +267,11 @@ const openEditModal = (blockElement) => {
     // --- End Suggestion Logic ---
 
     openModal(editModal);
-    setTimeout(() => modalTextarea.focus(), 50);
+    setTimeout(() => {
+        modalTextarea.focus();
+        autoResizeTextarea(modalTextarea);
+    }, 50);
+    modalTextarea.addEventListener('input', () => autoResizeTextarea(modalTextarea));
 };
 
 const closeEditModal = () => {
@@ -288,7 +296,14 @@ const saveModalChanges = () => {
     closeEditModal();
 };
 
-// --- UI Helper Functions ---
+// ---
+// UI Helper Functions: Reusable components for modals, toasts, and other UI elements.
+// ---
+const autoResizeTextarea = (textarea) => {
+    textarea.style.height = 'auto';
+    textarea.style.height = `${textarea.scrollHeight}px`;
+};
+
 const showToast = (message, type = 'info') => {
     const toastContainer = document.getElementById('toast-container');
     const toast = document.createElement('div');
@@ -402,7 +417,9 @@ const generatePrompt = () => {
     openModal(promptModal);
 };
 
-// --- Drag and Drop Logic with SortableJS ---
+// ---
+// Drag and Drop Logic: Initializes SortableJS for the toolbox and canvas.
+// ---
 const initDragAndDrop = () => {
     const toolboxContainer = document.getElementById('toolbox').querySelector('.space-y-3');
 
@@ -451,7 +468,9 @@ const initDragAndDrop = () => {
     });
 };
 
-// --- Firestore Persistence ---
+// ---
+// Firestore Persistence: Functions for saving, loading, and deleting agent data from Firebase.
+// ---
 const getAgentDataFromCanvas = (rootElement = canvas) => {
     const blocks = [];
     // Use :scope to select only direct children, not nested ones
@@ -657,7 +676,17 @@ const setupRealtimeListener = () => {
             });
 
             container.querySelectorAll('.load-agent-item').forEach(item => {
-                item.addEventListener('click', () => loadAgent(item.dataset.agentName));
+                item.addEventListener('click', (e) => {
+                    const button = e.currentTarget;
+                    const originalText = button.innerHTML;
+                    button.innerHTML = 'Loading...';
+                    button.disabled = true;
+
+                    loadAgent(button.dataset.agentName).finally(() => {
+                        button.innerHTML = originalText;
+                        button.disabled = false;
+                    });
+                });
             });
 
             container.querySelectorAll('.delete-agent-item').forEach(item => {
@@ -715,7 +744,9 @@ const openVersionsModal = async (agentName) => {
     });
 };
 
-// --- Button Creation ---
+// ---
+// Button Creation & Main Action Listeners
+// ---
 // A wrapper for actions that modify the canvas to ensure history is saved.
 const recordCanvasChange = (action) => {
     action(); // Perform the action
@@ -731,19 +762,19 @@ const createMainButtons = () => {
         </div>
         <div class="h-6 w-px bg-gray-700"></div>
         <div id="file-menu-container" class="relative">
-            <button id="file-menu-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md transition-colors shadow-lg"><i class="fas fa-file-alt mr-2"></i>File</button>
-            <div id="file-menu-dropdown" class="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-gray-700 ring-1 ring-black ring-opacity-5 z-10 hidden">
+            <button id="file-menu-btn" class="bg-[var(--bg-interactive)] hover:bg-[var(--bg-interactive-hover)] text-[var(--text-primary)] font-bold py-2 px-4 rounded-md transition-colors shadow-lg"><i class="fas fa-file-alt mr-2"></i>File</button>
+            <div id="file-menu-dropdown" class="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-[var(--bg-tertiary)] ring-1 ring-black ring-opacity-5 z-10 hidden">
                 <div class="py-1" role="menu" aria-orientation="vertical">
-                    <a href="#" id="import-btn" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600" role="menuitem"><i class="fas fa-file-import mr-2"></i>Import from JSON</a>
-                    <a href="#" id="export-btn" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600" role="menuitem"><i class="fas fa-file-export mr-2"></i>Export to JSON</a>
+                    <a href="#" id="import-btn" class="block px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-interactive)]" role="menuitem"><i class="fas fa-file-import mr-2"></i>Import from JSON</a>
+                    <a href="#" id="export-btn" class="block px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-interactive)]" role="menuitem"><i class="fas fa-file-export mr-2"></i>Export to JSON</a>
                 </div>
             </div>
         </div>
         <input type="file" id="import-file-input" class="hidden" accept=".json">
 
-        <button id="save-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-colors shadow-lg"><i class="fas fa-save mr-2"></i>Save (Cloud)</button>
+        <button id="save-btn" class="bg-[var(--color-blue-action)] hover:bg-[var(--color-blue-action-hover)] text-[var(--text-primary)] font-bold py-2 px-4 rounded-md transition-colors shadow-lg"><i class="fas fa-save mr-2"></i>Save (Cloud)</button>
         <div id="load-container" class="relative"></div> <!-- Container for load button and dropdown -->
-        <button id="generate-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md transition-colors shadow-lg"><i class="fas fa-cogs mr-2"></i>Generate Prompt</button>
+        <button id="generate-btn" class="bg-[var(--color-green-action)] hover:bg-[var(--color-green-action-hover)] text-[var(--text-primary)] font-bold py-2 px-4 rounded-md transition-colors shadow-lg"><i class="fas fa-cogs mr-2"></i>Generate Prompt</button>
         <button id="clear-btn" class="bg-[var(--color-red-action)] hover:bg-[var(--color-red-action-hover)] text-[var(--text-primary)] font-bold py-2 px-4 rounded-md transition-colors shadow-lg"><i class="fas fa-trash mr-2"></i>Clear</button>
         <div class="h-6 w-px bg-[var(--border-primary)]"></div>
         <button id="help-btn" class="bg-[var(--bg-interactive)] hover:bg-[var(--bg-interactive-hover)] text-[var(--text-primary)] font-bold py-2 px-4 rounded-md transition-colors shadow-lg"><i class="fas fa-question-circle mr-2"></i>Help</button>
@@ -838,10 +869,7 @@ const createMainButtons = () => {
         reader.onload = (event) => {
             try {
                 const data = JSON.parse(event.target.result);
-                // Basic validation
-                if (!Array.isArray(data)) {
-                    throw new Error("Invalid format: JSON is not an array.");
-                }
+                validateAgentData(data); // New validation step
                 loadAgentDataToCanvas(data);
                 showToast("Agent imported successfully!", "success");
             } catch (error) {
@@ -857,8 +885,35 @@ const createMainButtons = () => {
     });
 }
 
+const validateAgentData = (data) => {
+    if (!Array.isArray(data)) {
+        throw new Error("Invalid format: Data must be an array of blocks.");
+    }
+    for (const block of data) {
+        if (typeof block !== 'object' || block === null) {
+            throw new Error("Invalid block found: not an object.");
+        }
+        const requiredKeys = ['id', 'type', 'title', 'icon'];
+        for (const key of requiredKeys) {
+            if (!(key in block)) {
+                throw new Error(`Invalid block found: missing required key '${key}'.`);
+            }
+        }
+        if (block.type === 'group') {
+            if ('blocks' in block && Array.isArray(block.blocks)) {
+                validateAgentData(block.blocks); // Recursive validation
+            } else {
+                throw new Error("Invalid group block found: missing 'blocks' array.");
+            }
+        }
+    }
+    return true;
+};
 
-// --- Event Listeners ---
+
+// ---
+// Modal & Global Event Listeners
+// ---
 modalSaveBtn.addEventListener('click', saveModalChanges);
 closeModalBtn.addEventListener('click', closeEditModal);
 modalCancelBtn.addEventListener('click', closeEditModal);
@@ -1301,6 +1356,7 @@ const initPlayground = () => {
             sendMessage();
         }
     });
+    playgroundInput.addEventListener('input', () => autoResizeTextarea(playgroundInput));
 };
 
 // --- Suggestion Logic ---
