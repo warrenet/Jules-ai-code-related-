@@ -1,0 +1,112 @@
+name: CI Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl jq
+
+      - name: Make scripts executable
+        run: chmod +x *.sh
+
+      - name: Run environment check (without API keys)
+        run: |
+          # This should fail without API keys, which is expected
+          bash 00_check_env.sh || echo "Environment check failed as expected (no API keys in CI)"
+
+      - name: Run test suite
+        run: bash tests.sh
+
+      - name: Verify all scripts are executable
+        run: |
+          for script in *.sh; do
+            if [ ! -x "$script" ]; then
+              echo "Error: $script is not executable"
+              exit 1
+            fi
+          done
+          echo "All scripts are executable"
+
+      - name: Check for shellcheck warnings (if available)
+        run: |
+          if command -v shellcheck &> /dev/null; then
+            shellcheck *.sh || echo "Shellcheck warnings found (non-fatal)"
+          else
+            echo "Shellcheck not available, skipping"
+          fi
+        continue-on-error: true
+
+      - name: Verify installer script structure
+        run: |
+          # Check that the installer contains all necessary files
+          grep -q "ai_cli.sh" install_toolkit.sh || exit 1
+          grep -q "clip_summarize.sh" install_toolkit.sh || exit 1
+          grep -q "url_summarize.sh" install_toolkit.sh || exit 1
+          grep -q "file_summarize.sh" install_toolkit.sh || exit 1
+          grep -q "00_check_env.sh" install_toolkit.sh || exit 1
+          echo "Installer script contains all expected components"
+
+  lint:
+    name: Lint Markdown Files
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for broken links in README
+        run: |
+          # Basic check for common markdown issues
+          for md in *.md; do
+            echo "Checking $md"
+            # Check for empty links
+            if grep -q '\[\](' "$md"; then
+              echo "Error: Empty link text found in $md"
+              exit 1
+            fi
+          done
+          echo "All markdown files look good"
+
+  security:
+    name: Security Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for hardcoded secrets
+        run: |
+          # Check for potential hardcoded API keys
+          if grep -r "sk-[a-zA-Z0-9]\{32,\}" --exclude-dir=.git .; then
+            echo "Error: Potential hardcoded OpenAI API key found"
+            exit 1
+          fi
+          if grep -r "AIza[a-zA-Z0-9_-]\{35\}" --exclude-dir=.git .; then
+            echo "Error: Potential hardcoded Google API key found"
+            exit 1
+          fi
+          echo "No hardcoded secrets detected"
+
+      - name: Verify env template has no real keys
+        run: |
+          # Make sure template doesn't contain real API keys
+          if grep -E '(OPENAI_API_KEY|GEMINI_API_KEY)="[^.]' 01_env_template.sh | grep -v '# export'; then
+            echo "Error: Real API key may be present in template"
+            exit 1
+          fi
+          echo "Environment template is clean"

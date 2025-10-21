@@ -1,0 +1,40 @@
+# API Keys and Secrets
+env
+.env
+*.key
+*.pem
+config/env
+.config/
+
+# Test and Mock Data
+mock_bin/
+/tmp/
+*.log
+
+# Editor and IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Output directories
+out/
+output/
+cache/
+.cache/
+
+# User-specific config
+~/.config/termux-ai/
+~/.local/share/termux-ai/
+~/.cache/termux-ai/
+
+# Backup files
+*.bak
+*.backup
+*.orig
+
+# Test artifacts
+test_output/
+coverage/
