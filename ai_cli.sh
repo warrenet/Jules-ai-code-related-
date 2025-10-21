@@ -1,4 +1,4 @@
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash
 #
 # ai_cli.sh
 # The universal AI command-line interface for Termux.

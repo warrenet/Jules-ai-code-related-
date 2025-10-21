@@ -106,9 +106,9 @@ We welcome several types of contributions:
 
 #### Style Guidelines
 
-1. **Shebang**: Use `#!/data/data/com.termux/files/usr/bin/bash` for Termux compatibility
+1. **Shebang**: Use `#!/usr/bin/env bash` for cross-platform compatibility (works on Termux, Linux, macOS)
    ```bash
-   #!/data/data/com.termux/files/usr/bin/bash
+   #!/usr/bin/env bash
    ```
 
 2. **Strict Mode**: Always start scripts with:
@@ -180,7 +180,7 @@ We welcome several types of contributions:
 
 1. **Script Headers**: Each script should have:
    ```bash
-   #!/data/data/com.termux/files/usr/bin/bash
+   #!/usr/bin/env bash
    #
    # script_name.sh
    # Brief description of what the script does.

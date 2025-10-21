@@ -1,4 +1,4 @@
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash
 #
 # Termux AI Toolkit Installer
 #
@@ -211,7 +211,7 @@ EOF
 
 echo "Unpacking 00_check_env.sh..."
 cat <<'EOF' > 00_check_env.sh
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash
 #
 # 00_check_env.sh
 # Verifies that the environment is ready for the Termux AI Toolkit.
@@ -327,7 +327,7 @@ EOF
 
 echo "Unpacking 01_env_template.sh..."
 cat <<'EOF' > 01_env_template.sh
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash
 #
 # Termux AI Toolkit - Environment Configuration Template
 #
@@ -391,7 +391,7 @@ EOF
 
 echo "Unpacking ai_cli.sh..."
 cat <<'EOF' > ai_cli.sh
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash
 #
 # ai_cli.sh
 # The universal AI command-line interface for Termux.
@@ -694,7 +694,7 @@ EOF
 
 echo "Unpacking clip_summarize.sh..."
 cat <<'EOF' > clip_summarize.sh
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash
 #
 # clip_summarize.sh
 # Summarizes text from the Android clipboard.
@@ -761,7 +761,7 @@ EOF
 
 echo "Unpacking url_summarize.sh..."
 cat <<'EOF' > url_summarize.sh
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash
 #
 # url_summarize.sh
 # Fetches and summarizes the content of a URL.
@@ -869,7 +869,7 @@ EOF
 
 echo "Unpacking file_summarize.sh..."
 cat <<'EOF' > file_summarize.sh
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash
 #
 # file_summarize.sh
 # Reads and summarizes a local text file.
@@ -1116,7 +1116,7 @@ EOF
 
 echo "Unpacking tests.sh..."
 cat <<'EOF' > tests.sh
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash
 #
 # tests.sh
 # Smoke tests for the Termux AI Toolkit.

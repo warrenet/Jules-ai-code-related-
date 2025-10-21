@@ -1,4 +1,4 @@
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash
 #
 # url_summarize.sh
 # Fetches and summarizes the content of a URL.

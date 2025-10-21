@@ -27,7 +27,7 @@ Copy and paste this entire block into Termux and press Enter.
 ```bash
 mkdir -p ~/.shortcuts
 cat <<'EOF' > ~/.shortcuts/01-ai-ask
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash
 # Shortcut for a quick AI prompt.
 
 # Source environment to get API keys
@@ -64,7 +64,7 @@ Copy and paste this entire block into Termux and press Enter.
 ```bash
 mkdir -p ~/.shortcuts
 cat <<'EOF' > ~/.shortcuts/02-summarize-clipboard
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash
 # Shortcut to summarize clipboard content.
 
 # Source environment to get API keys
@@ -94,7 +94,7 @@ Copy and paste this entire block into Termux and press Enter.
 ```bash
 mkdir -p ~/.shortcuts
 cat <<'EOF' > ~/.shortcuts/03-summarize-url
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash
 # Shortcut to summarize the last URL in the clipboard.
 
 # Source environment to get API keys

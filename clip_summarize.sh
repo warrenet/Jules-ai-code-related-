@@ -1,4 +1,4 @@
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash
 #
 # clip_summarize.sh
 # Summarizes text from the Android clipboard.

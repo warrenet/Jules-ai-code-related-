@@ -1,4 +1,4 @@
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash
 #
 # 00_check_env.sh
 # Verifies that the environment is ready for the Termux AI Toolkit.
