@@ -1,0 +1,17 @@
+Generate comprehensive documentation for the following code:
+
+[PASTE YOUR CODE/FUNCTION/CLASS HERE]
+
+Please include:
+1. Overview/Purpose
+2. Parameters (with types and descriptions)
+3. Return values
+4. Usage examples (at least 2-3)
+5. Error handling
+6. Notes/Warnings
+7. Related functions/dependencies
+
+Format the documentation in:
+[Choose: Markdown / JSDoc / Python docstring / Javadoc]
+
+Make it beginner-friendly but technically accurate.

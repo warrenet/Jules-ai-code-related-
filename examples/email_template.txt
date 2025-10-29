@@ -1,0 +1,15 @@
+Write a professional email with the following details:
+
+Purpose: [What is the email for? e.g., Request a meeting, Follow-up, Introduction]
+Recipient: [Who is receiving this? e.g., Manager, Client, Team]
+Tone: [Formal, Semi-formal, Friendly-professional]
+Key Points:
+- [Point 1]
+- [Point 2]
+- [Point 3]
+
+Requirements:
+- Professional but warm tone
+- Clear and concise
+- Include appropriate greeting and closing
+- Proofread for grammar and clarity

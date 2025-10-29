@@ -1,0 +1,19 @@
+I'm experiencing the following error/bug:
+
+Error message:
+[PASTE ERROR MESSAGE HERE]
+
+Code that's failing:
+[PASTE YOUR CODE HERE]
+
+Context:
+- Language/Framework: [e.g., Python, JavaScript, React]
+- What I'm trying to do: [Describe the goal]
+- What's happening instead: [Describe the actual behavior]
+- What I've tried: [List debugging steps taken]
+
+Please help me:
+1. Identify the root cause
+2. Explain why it's happening
+3. Provide a working solution with explanation
+4. Suggest how to prevent this in the future

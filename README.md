@@ -16,79 +16,100 @@ A collection of carefully crafted scripts that enable you to use OpenAI GPT and 
 
 ## Quick Start
 
-### Prerequisites
+### 🚀 Fastest Way to Get Started (2 minutes)
 
-You'll need:
-- Android device with [Termux](https://f-droid.org/en/packages/com.termux/) installed from F-Droid
-- An API key from [OpenAI](https://platform.openai.com/api-keys) or [Google AI](https://ai.google.dev/)
-
-### Installation
-
-#### Option 1: One-Line Install (Recommended)
-
-Run this command in Termux to download and execute the installer:
-
+**Step 1:** Clone and enter the directory
 ```bash
-curl -sL https://raw.githubusercontent.com/warrenet/Jules-ai-code-related-/main/install_toolkit.sh | bash
-```
-
-#### Option 2: Clone from GitHub
-
-```bash
-# Clone the repository
 git clone https://github.com/warrenet/Jules-ai-code-related-.git ~/termux-ai-toolkit
-
-# Navigate to the directory
 cd ~/termux-ai-toolkit
-
-# Make scripts executable
-chmod +x *.sh
 ```
 
-### Configuration
+**Step 2:** Run the setup wizard
+```bash
+bash setup.sh
+```
 
-1. Install required dependencies:
+The wizard will:
+- ✅ Install dependencies automatically (curl, jq)
+- ✅ Guide you through API key configuration
+- ✅ Test your setup
+- ✅ Run a live demo
+
+**Step 3:** Start using AI!
+```bash
+bash ai_cli.sh -p "Explain quantum computing in simple terms"
+```
+
+That's it! You're ready to go.
+
+---
+
+### 📚 Alternative: Manual Setup
+
+If you prefer manual control:
+
+1. **Get an API key:**
+   - [OpenAI](https://platform.openai.com/api-keys) (ChatGPT) - Free tier available
+   - [Google AI](https://ai.google.dev/) (Gemini) - Free tier available
+
+2. **Install dependencies:**
    ```bash
-   pkg install curl jq
+   pkg install curl jq  # On Termux
+   # OR
+   sudo apt install curl jq  # On Debian/Ubuntu
    ```
 
-2. Create your configuration file:
+3. **Configure your API key:**
    ```bash
    mkdir -p ~/.config/termux-ai
    cp 01_env_template.sh ~/.config/termux-ai/env
+   nano ~/.config/termux-ai/env  # Add your API key
    ```
 
-3. Edit the config file and add your API key:
-   ```bash
-   nano ~/.config/termux-ai/env
-   ```
-
-   Uncomment and set your API key:
-   ```bash
-   export OPENAI_API_KEY="sk-..."
-   # OR
-   export GEMINI_API_KEY="..."
-   ```
-
-4. Load the configuration:
-   ```bash
-   source ~/.config/termux-ai/env
-   ```
-
-5. Verify everything is ready:
+4. **Test it:**
    ```bash
    bash 00_check_env.sh
    ```
 
-### First Command
+---
+
+### 🎯 Interactive Learning
+
+New to the toolkit? Run the interactive guide:
 
 ```bash
-# Ask the AI a question
-bash ai_cli.sh -p "Explain quantum computing in simple terms"
-
-# Save output to a file (disable dry-run)
-DRY_RUN=0 bash ai_cli.sh -p "Write a haiku about coding"
+bash quick_start.sh
 ```
+
+This provides:
+- Hands-on examples and demos
+- Step-by-step tutorials
+- Real-time AI interactions
+- Tips and tricks
+
+---
+
+### 📝 Example Prompts Library
+
+Not sure what to ask? Check out the `examples/` directory:
+
+```bash
+# Use ready-made prompts
+bash ai_cli.sh -f examples/code_review.txt
+
+# Browse all examples
+ls examples/
+```
+
+Available examples:
+- Code review and debugging
+- Email drafting
+- Git commit messages
+- Documentation generation
+- API design
+- And more!
+
+---
 
 ## Usage Examples
 

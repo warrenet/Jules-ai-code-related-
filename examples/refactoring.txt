@@ -1,0 +1,19 @@
+Analyze this code and suggest refactoring improvements:
+
+[PASTE YOUR CODE HERE]
+
+Focus on:
+1. Code organization and structure
+2. Reducing complexity/duplication
+3. Improving readability
+4. Performance optimization
+5. Following SOLID principles
+6. Modern best practices
+
+For each suggestion:
+- Explain the problem with current code
+- Show the improved version
+- Explain why it's better
+- Note any tradeoffs
+
+Prioritize changes by impact (high/medium/low).

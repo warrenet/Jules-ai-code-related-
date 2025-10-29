@@ -1,0 +1,16 @@
+Explain the following concept to me:
+
+Topic: [YOUR TOPIC HERE]
+
+My background:
+[Describe your current knowledge level: Beginner / Intermediate / Advanced]
+
+Please explain this in a way that:
+1. Starts with a simple analogy or real-world example
+2. Breaks down complex terms into simple language
+3. Provides concrete examples
+4. Highlights common misconceptions
+5. Gives practical applications
+6. Suggests next steps for deeper learning
+
+Make it engaging and easy to understand while being technically accurate.

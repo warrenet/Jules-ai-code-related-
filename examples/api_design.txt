@@ -1,0 +1,24 @@
+Design a RESTful API for the following use case:
+
+Use Case:
+[DESCRIBE YOUR APPLICATION/FEATURE HERE]
+
+Requirements:
+- Authentication: [Yes/No, Type if applicable]
+- Data format: JSON
+- Follow REST best practices
+
+Please provide:
+1. Endpoint definitions (method, path, description)
+2. Request/response schemas
+3. Status codes for different scenarios
+4. Authentication/authorization approach
+5. Rate limiting strategy
+6. Error response format
+7. Versioning strategy
+
+Example endpoints:
+- GET /api/v1/users - List all users
+- POST /api/v1/users - Create new user
+- GET /api/v1/users/:id - Get specific user
+etc.

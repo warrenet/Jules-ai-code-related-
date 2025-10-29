@@ -1,0 +1,24 @@
+Generate a professional git commit message for the following changes:
+
+Changes made:
+[DESCRIBE YOUR CHANGES HERE]
+
+Follow these guidelines:
+- Use conventional commits format (feat/fix/docs/refactor/test/chore)
+- First line: concise summary (50 chars max)
+- Blank line
+- Detailed description explaining what and why
+- List any breaking changes
+- Reference issue numbers if applicable
+
+Example format:
+feat(module): add user authentication
+
+- Implemented JWT-based authentication
+- Added login and registration endpoints
+- Created user session management
+- Updated security middleware
+
+BREAKING CHANGE: Auth tokens now required for all API calls
+
+Closes #123

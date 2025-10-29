@@ -1,0 +1,16 @@
+I need creative ideas for: [YOUR TOPIC/PROBLEM HERE]
+
+Context:
+[Describe your situation, goals, and constraints]
+
+Please generate 10 innovative ideas that are:
+1. Practical and actionable
+2. Creative but realistic
+3. Diverse in approach
+4. Ranked by potential impact
+
+For each idea, provide:
+- Brief description
+- Key benefits
+- Implementation difficulty (Easy/Medium/Hard)
+- Estimated time to implement

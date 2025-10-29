@@ -1,0 +1,21 @@
+Generate comprehensive test cases for the following:
+
+Function/Feature:
+[DESCRIBE OR PASTE CODE HERE]
+
+Requirements:
+- Test framework: [e.g., Jest, PyTest, JUnit]
+- Coverage goals: [Unit tests, Integration tests, Edge cases]
+
+Please provide:
+1. Test cases for happy path scenarios
+2. Edge cases and boundary conditions
+3. Error handling tests
+4. Mock data/fixtures needed
+5. Setup and teardown code if needed
+
+Format:
+- Clear test descriptions
+- Arrange-Act-Assert structure
+- Comments explaining what's being tested
+- Expected vs actual assertions
