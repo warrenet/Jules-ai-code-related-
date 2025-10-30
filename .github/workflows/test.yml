@@ -92,11 +92,11 @@ jobs:
       - name: Check for hardcoded secrets
         run: |
           # Check for potential hardcoded API keys
-          if grep -r "sk-[a-zA-Z0-9]\{32,\}" --exclude-dir=.git .; then
+          if grep -rl "sk-[a-zA-Z0-9]\{32,\}" --exclude-dir=.git . > /dev/null; then
             echo "Error: Potential hardcoded OpenAI API key found"
             exit 1
           fi
-          if grep -r "AIza[a-zA-Z0-9_-]\{35\}" --exclude-dir=.git .; then
+          if grep -rl "AIza[a-zA-Z0-9_-]\{35\}" --exclude-dir=.git . > /dev/null; then
             echo "Error: Potential hardcoded Google API key found"
             exit 1
           fi
