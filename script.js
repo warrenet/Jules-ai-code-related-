@@ -108,7 +108,7 @@ const showConfirm = (message, title = 'Confirmation') => {
             confirmModal.style.display = 'none';
             confirmModalBackdrop.style.display = 'none';
             resolve(false);
-_        };
+        };
     });
 };
 
@@ -285,8 +285,8 @@ const canvasSortable = new Sortable(canvas, {
         const newBlock = createBlockElement(blockData);
 
         // Replace the clone with the new, fully functional block
-        evt.from.insertBefore(itemEl, evt.item.nextSibling); // put the original back
-        canvas.replaceChild(newBlock, itemEl);
+        canvas.insertBefore(newBlock, itemEl);
+        canvas.removeChild(itemEl);
 
         updateCanvasPlaceholder();
     }
