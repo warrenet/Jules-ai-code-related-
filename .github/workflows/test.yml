@@ -91,15 +91,21 @@ jobs:
 
       - name: Check for hardcoded secrets
         run: |
-          # Check for potential hardcoded API keys
-          if grep -r "sk-[a-zA-Z0-9]\{32,\}" --exclude-dir=.git .; then
-            echo "Error: Potential hardcoded OpenAI API key found"
+          # Check for potential hardcoded API keys without echoing the secret value
+          openai_matches=$(grep -REl 'sk-[A-Za-z0-9]{32,}' --exclude-dir=.git . || true)
+          if [ -n "$openai_matches" ]; then
+            echo "Error: Potential hardcoded OpenAI API key found in the following files:"
+            printf '%s\n' "$openai_matches"
             exit 1
           fi
-          if grep -r "AIza[a-zA-Z0-9_-]\{35\}" --exclude-dir=.git .; then
-            echo "Error: Potential hardcoded Google API key found"
+
+          google_matches=$(grep -REl 'AIza[A-Za-z0-9_-]{35}' --exclude-dir=.git . || true)
+          if [ -n "$google_matches" ]; then
+            echo "Error: Potential hardcoded Google API key found in the following files:"
+            printf '%s\n' "$google_matches"
             exit 1
           fi
+
           echo "No hardcoded secrets detected"
 
       - name: Verify env template has no real keys
