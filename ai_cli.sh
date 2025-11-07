@@ -3,6 +3,8 @@
 # ai_cli.sh
 # The universal AI command-line interface for Termux.
 #
+# Version: 1.0.0
+#
 # Usage:
 #   echo "Hello" | ./ai_cli.sh -p -
 #   ./ai_cli.sh -p "Translate 'hello' to French"
@@ -18,6 +20,9 @@
 # --- Strict Mode & Globals ---
 set -Eeuo pipefail
 IFS=$'\n\t'
+
+# --- Version ---
+VERSION="1.0.0"
 
 # --- Script Info & Workspace ---
 SCRIPT_NAME="$(basename "$0")"
@@ -56,7 +61,7 @@ require_cmd() {
 }
 
 usage() {
-    echo "Termux AI Universal CLI"
+    echo "Termux AI Universal CLI v$VERSION"
     echo ""
     echo "Usage: $SCRIPT_NAME [options]"
     echo ""
@@ -67,10 +72,10 @@ usage() {
     echo "  -s, --system <text>   System prompt or instruction."
     echo "  -m, --model <name>    Specify a model to use (e.g., gpt-4o-mini)."
     echo "      --provider <name> Force a provider ('openai' or 'gemini')."
-    echo "      --json            Output the raw JSON response from the API."
     echo "      --no-save         Do not save the output to a file."
     echo "      --timeout <secs>  Set a timeout for the API call (default: 60)."
     echo "      --dry-run         Simulate run without writing files (default)."
+    echo "  -v, --version         Show version information."
     echo "  -h, --help            Show this help message."
     echo ""
     echo "Examples:"
@@ -193,6 +198,7 @@ main() {
             --no-save) no_save=1; shift ;;
             --dry-run) dry_run=1; shift ;;
             --timeout) AI_TIMEOUT="$2"; shift 2;;
+            -v|--version) echo "Termux AI CLI v$VERSION"; exit 0 ;;
             -h|--help) usage; exit 0 ;;
             *) die "Unknown option: $1";;
         esac

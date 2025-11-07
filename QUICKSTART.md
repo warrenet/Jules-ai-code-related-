@@ -33,12 +33,15 @@ Get started with the Termux AI Toolkit in 5 minutes or less!
    ```bash
    source ~/.config/termux-ai/env
    bash 00_check_env.sh
-   bash ai_cli.sh -p "Hello, AI!"
+   # Or use the unified launcher:
+   bash termux-ai check
+   bash termux-ai ask -p "Hello, AI!"
    ```
 
 ✅ **You're ready!** Try these next:
-- `bash clip_summarize.sh` - Summarize clipboard
-- `bash url_summarize.sh -u "https://example.com"` - Summarize a webpage
+- `bash termux-ai clip` - Summarize clipboard
+- `bash termux-ai url -u "https://example.com"` - Summarize a webpage
+- `bash termux-ai ask --help` - See all options
 - See [optional_widget_setup.md](optional_widget_setup.md) for home screen widgets
 
 ---

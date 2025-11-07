@@ -14,6 +14,7 @@ This repository contains **two main components**:
 
 ### 1. 🤖 Termux AI Command-Line Tools
 A suite of Bash scripts for Android/Termux that bring AI capabilities to your mobile device:
+- **`termux-ai`** - Unified launcher for easy access to all commands
 - **`ai_cli.sh`** - Universal AI command-line interface
 - **`clip_summarize.sh`** - Summarize clipboard content
 - **`url_summarize.sh`** - Fetch and summarize web pages
@@ -106,19 +107,52 @@ chmod +x *.sh
 5. Verify everything is ready:
    ```bash
    bash 00_check_env.sh
+   # Or use the unified launcher:
+   bash termux-ai check
    ```
 
 ### First Command
 
 ```bash
-# Ask the AI a question
+# Using the unified launcher (recommended):
+bash termux-ai ask -p "Explain quantum computing in simple terms"
+
+# Or call scripts directly:
 bash ai_cli.sh -p "Explain quantum computing in simple terms"
 
 # Save output to a file (disable dry-run)
-DRY_RUN=0 bash ai_cli.sh -p "Write a haiku about coding"
+DRY_RUN=0 bash termux-ai ask -p "Write a haiku about coding"
 ```
 
 ## Usage Examples
+
+### Using the Unified Launcher (Recommended)
+
+The `termux-ai` launcher provides a simple, unified interface to all toolkit commands:
+
+```bash
+# Check your environment
+bash termux-ai check
+
+# Ask the AI a question
+bash termux-ai ask -p "What is Bash?"
+
+# Summarize clipboard content
+bash termux-ai clip
+
+# Summarize a web page
+bash termux-ai url -u "https://example.com/article"
+
+# Summarize a local file
+bash termux-ai file -f ~/document.txt
+
+# Run tests
+bash termux-ai test
+
+# Get help
+bash termux-ai --help
+bash termux-ai ask --help
+```
 
 ### Core AI CLI (`ai_cli.sh`)
 

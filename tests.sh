@@ -128,6 +128,28 @@ test_04_wrapper_scripts_exist() {
     done
 }
 
+test_05_launcher_help() {
+    local out
+    out=$(bash ./termux-ai --help 2>&1)
+    local code=$?
+    if [[ "$code" -eq 0 && "$out" == *"Termux AI Toolkit"* ]]; then
+        pass "termux-ai launcher shows help."
+    else
+        fail "termux-ai launcher help failed. Exit: $code"
+    fi
+}
+
+test_06_launcher_version() {
+    local out
+    out=$(bash ./termux-ai --version 2>&1)
+    local code=$?
+    if [[ "$code" -eq 0 && "$out" == *"v1.0.0"* ]]; then
+        pass "termux-ai launcher shows version."
+    else
+        fail "termux-ai launcher version failed. Exit: $code, Output: $out"
+    fi
+}
+
 # --- Test Runner ---
 main() {
     setup
@@ -137,6 +159,8 @@ main() {
     test_02_ai_cli_mutually_exclusive_args
     test_03_check_env_script
     test_04_wrapper_scripts_exist
+    test_05_launcher_help
+    test_06_launcher_version
 
     echo ""
     echo "--- Tests finished ---"

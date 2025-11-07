@@ -1,0 +1,98 @@
+#!/data/data/com.termux/files/usr/bin/bash
+#
+# termux-ai
+# Main launcher for the Termux AI Toolkit
+#
+# Version: 1.0.0
+#
+# This script provides a unified entry point for all toolkit commands.
+#
+
+set -Eeo pipefail
+
+VERSION="1.0.0"
+TOOLKIT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+usage() {
+    cat <<EOF
+Termux AI Toolkit v$VERSION
+A unified launcher for all AI toolkit commands.
+
+USAGE:
+    termux-ai <command> [options]
+
+COMMANDS:
+    ask, ai              - Interactive AI chat (runs ai_cli.sh)
+    clip, clipboard      - Summarize clipboard content (runs clip_summarize.sh)
+    url, web             - Summarize a web page (runs url_summarize.sh)
+    file, summarize      - Summarize a local file (runs file_summarize.sh)
+    check, env           - Check environment setup (runs 00_check_env.sh)
+    test                 - Run test suite (runs tests.sh)
+    
+QUICK EXAMPLES:
+    termux-ai ask -p "What is Bash?"
+    termux-ai clip
+    termux-ai url -u "https://example.com"
+    termux-ai file -f ~/document.txt
+    termux-ai check
+
+OPTIONS:
+    -h, --help           - Show this help message
+    -v, --version        - Show version information
+
+TIPS:
+    - Set DRY_RUN=0 to save outputs: DRY_RUN=0 termux-ai ask -p "Hello"
+    - For detailed help on any command: termux-ai <command> --help
+    - First time? Run: termux-ai check
+
+For more information, see README.md or visit:
+https://github.com/warrenet/Jules-ai-code-related-
+EOF
+}
+
+# Parse global options
+case "${1:-}" in
+    -h|--help)
+        usage
+        exit 0
+        ;;
+    -v|--version)
+        echo "Termux AI Toolkit v$VERSION"
+        exit 0
+        ;;
+    "")
+        usage
+        exit 1
+        ;;
+esac
+
+# Route to appropriate script
+command="$1"
+shift
+
+case "$command" in
+    ask|ai)
+        exec bash "$TOOLKIT_DIR/ai_cli.sh" "$@"
+        ;;
+    clip|clipboard)
+        exec bash "$TOOLKIT_DIR/clip_summarize.sh" "$@"
+        ;;
+    url|web)
+        exec bash "$TOOLKIT_DIR/url_summarize.sh" "$@"
+        ;;
+    file|summarize)
+        exec bash "$TOOLKIT_DIR/file_summarize.sh" "$@"
+        ;;
+    check|env)
+        exec bash "$TOOLKIT_DIR/00_check_env.sh" "$@"
+        ;;
+    test)
+        exec bash "$TOOLKIT_DIR/tests.sh" "$@"
+        ;;
+    *)
+        echo "Error: Unknown command '$command'" >&2
+        echo ""
+        echo "Run 'termux-ai --help' for usage information." >&2
+        exit 1
+        ;;
+esac
