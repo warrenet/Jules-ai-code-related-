@@ -25,7 +25,6 @@ CONFIG_DIR="$HOME/.config/termux-ai"
 DATA_DIR="$HOME/.local/share/termux-ai"
 CACHE_DIR="$HOME/.cache/termux-ai"
 OUT_DIR="$DATA_DIR/out"
-LOG_FILE="$CACHE_DIR/run.log"
 CONFIG_FILE="$CONFIG_DIR/env"
 
 # --- Load User Config ---
@@ -106,7 +105,7 @@ openai_call() {
         fi
         if [[ "$line" == "data: "* ]]; then
             local chunk
-            chunk=$(echo "$line" | sed 's/^data: //')
+            chunk="${line#data: }"
             local content
             content=$(echo "$chunk" | jq -r '.choices[0].delta.content // ""')
             if [[ -n "$content" ]]; then
@@ -148,7 +147,7 @@ gemini_call() {
     while read -r line; do
         if [[ "$line" == "data: "* ]]; then
             local chunk
-            chunk=$(echo "$line" | sed 's/^data: //')
+            chunk="${line#data: }"
             local content
             content=$(echo "$chunk" | jq -r '.candidates[0].content.parts[0].text // ""')
             if [[ -n "$content" ]]; then
@@ -177,7 +176,6 @@ main() {
     system_prompt=""
     model=""
     provider="${PROVIDER:-}"
-    json_output=0
     no_save=0
     # Respect global DRY_RUN but allow override. Default to 1 (true).
     dry_run="${DRY_RUN:-1}"
@@ -192,7 +190,6 @@ main() {
             -s|--system) system_prompt="$2"; shift 2 ;;
             -m|--model) model="$2"; shift 2 ;;
             --provider) provider="$2"; shift 2 ;;
-            --json) json_output=1; shift ;;
             --no-save) no_save=1; shift ;;
             --dry-run) dry_run=1; shift ;;
             --timeout) AI_TIMEOUT="$2"; shift 2;;

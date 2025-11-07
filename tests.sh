@@ -64,7 +64,9 @@ EOF
         chmod +x "$MOCK_DIR/$cmd"
     done
 
-    export PATH="$(pwd)/$MOCK_DIR:$PATH"
+    local mock_path
+    mock_path="$(pwd)/$MOCK_DIR"
+    export PATH="$mock_path:$PATH"
 }
 
 # --- Test Cases ---
