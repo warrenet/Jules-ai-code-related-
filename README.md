@@ -371,10 +371,16 @@ The Agent Builder works offline by default with local storage. No Firebase setup
 
 ## Development
 
+### Repository Structure
+
+For a detailed explanation of the codebase architecture, design decisions, and how to extend the toolkit, see [ARCHITECTURE.md](ARCHITECTURE.md).
+
 ### Running Tests
 
 ```bash
 bash tests.sh
+# Or use the launcher:
+bash termux-ai test
 ```
 
 ### Contributing
