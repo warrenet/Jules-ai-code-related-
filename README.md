@@ -2,7 +2,36 @@
 
 > Bring powerful AI capabilities to your Android device with simple, safe, and privacy-focused Bash scripts.
 
+**⚡ New here?** Check out the [Quick Start Guide](QUICKSTART.md) to get up and running in 5 minutes!
+
+---
+
 A collection of carefully crafted scripts that enable you to use OpenAI GPT and Google Gemini models directly from your Android device via Termux. No complicated setup, no hidden behaviors - just straightforward AI tools at your fingertips.
+
+## 📦 What's Included
+
+This repository contains **two main components**:
+
+### 1. 🤖 Termux AI Command-Line Tools
+A suite of Bash scripts for Android/Termux that bring AI capabilities to your mobile device:
+- **`termux-ai`** - Unified launcher for easy access to all commands
+- **`ai_cli.sh`** - Universal AI command-line interface
+- **`clip_summarize.sh`** - Summarize clipboard content
+- **`url_summarize.sh`** - Fetch and summarize web pages
+- **`file_summarize.sh`** - Analyze local text files
+- **`00_check_env.sh`** - Environment diagnostic tool
+- **`install_toolkit.sh`** - One-command installer
+
+### 2. 🎨 Agent Builder Web Application
+A browser-based visual tool for creating AI agent prompts:
+- **`index.html`** + **`script.js`** - Interactive drag-and-drop agent builder
+- Design complex AI agent workflows visually
+- Export and share agent configurations
+- Firebase integration for cloud storage
+
+Choose the tool that fits your needs, or use both together!
+
+---
 
 ## Features
 
@@ -78,19 +107,52 @@ chmod +x *.sh
 5. Verify everything is ready:
    ```bash
    bash 00_check_env.sh
+   # Or use the unified launcher:
+   bash termux-ai check
    ```
 
 ### First Command
 
 ```bash
-# Ask the AI a question
+# Using the unified launcher (recommended):
+bash termux-ai ask -p "Explain quantum computing in simple terms"
+
+# Or call scripts directly:
 bash ai_cli.sh -p "Explain quantum computing in simple terms"
 
 # Save output to a file (disable dry-run)
-DRY_RUN=0 bash ai_cli.sh -p "Write a haiku about coding"
+DRY_RUN=0 bash termux-ai ask -p "Write a haiku about coding"
 ```
 
 ## Usage Examples
+
+### Using the Unified Launcher (Recommended)
+
+The `termux-ai` launcher provides a simple, unified interface to all toolkit commands:
+
+```bash
+# Check your environment
+bash termux-ai check
+
+# Ask the AI a question
+bash termux-ai ask -p "What is Bash?"
+
+# Summarize clipboard content
+bash termux-ai clip
+
+# Summarize a web page
+bash termux-ai url -u "https://example.com/article"
+
+# Summarize a local file
+bash termux-ai file -f ~/document.txt
+
+# Run tests
+bash termux-ai test
+
+# Get help
+bash termux-ai --help
+bash termux-ai ask --help
+```
 
 ### Core AI CLI (`ai_cli.sh`)
 
@@ -252,12 +314,73 @@ pkg install termux-api
 - Run the diagnostic: `bash 00_check_env.sh`
 - Open an issue on GitHub
 
+## Agent Builder Web Application
+
+### Overview
+
+The Agent Builder is a visual, browser-based tool for designing AI agent prompts and workflows. It provides a drag-and-drop interface for creating complex agent configurations.
+
+### Features
+
+- **Visual Workflow Designer**: Drag and drop blocks to create agent prompts
+- **Multiple Block Types**: 
+  - System prompts
+  - User messages
+  - Context blocks
+  - Tools and capabilities
+- **Real-time Preview**: See your agent prompt as you build
+- **Cloud Storage**: Save and load configurations via Firebase
+- **Export/Import**: Share agent designs with others
+- **Mobile Responsive**: Works on desktop and mobile browsers
+
+### Quick Start
+
+1. **Open the Application**:
+   - Simply open `index.html` in any modern web browser
+   - Or deploy to a web server for remote access
+
+2. **Build Your Agent**:
+   - Click on blocks in the toolbox to add them to the canvas
+   - Drag blocks to reorder them
+   - Click on any block to edit its content
+   - Use the "Generate" button to see the complete prompt
+
+3. **Save and Share**:
+   - Click "Save" to store your agent configuration
+   - Click "Load" to retrieve saved configurations
+   - Copy the generated prompt to use with any AI service
+
+### Firebase Configuration (Optional)
+
+To enable cloud storage features:
+
+1. Create a Firebase project at [firebase.google.com](https://firebase.google.com)
+2. Enable Firestore and Authentication
+3. Update the Firebase configuration in `index.html`:
+   ```javascript
+   const __firebase_config = `{
+     "apiKey": "your-api-key",
+     "authDomain": "your-project.firebaseapp.com",
+     "projectId": "your-project-id"
+   }`;
+   ```
+
+### Local Usage
+
+The Agent Builder works offline by default with local storage. No Firebase setup is required for basic functionality.
+
 ## Development
+
+### Repository Structure
+
+For a detailed explanation of the codebase architecture, design decisions, and how to extend the toolkit, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ### Running Tests
 
 ```bash
 bash tests.sh
+# Or use the launcher:
+bash termux-ai test
 ```
 
 ### Contributing
