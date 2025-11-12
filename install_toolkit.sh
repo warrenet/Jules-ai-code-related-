@@ -49,7 +49,7 @@ This toolkit is built on a "safety first" principle. Scripts are non-destructive
 Before you begin, understand these core safety rules:
 
 *   **Non-Destructive by Default:** Scripts run in a **read-only** mode (`DRY_RUN=1`) by default. They will not write any files to your device until you explicitly allow them to by setting `DRY_RUN=0`.
-*   **Isolated Workspace:** All files created by this toolkit (outputs, configs, logs) are stored exclusively within the `~/.config/termux-ai`, `~/.local/share/termux-ai`, and `~/.cache/termux-ai` directories. **No other locations are ever touched.**
+*   **Isolated Workspace:** All files created by this toolkit (outputs, configs, logs) are stored exclusively within the `~/.config/termux-ai` and `~/.local/share/termux-ai` directories. **No other locations are ever touched.**
 *   **No Automatic System Changes:** The scripts will **never** automatically install packages, modify your `.bashrc` or `PATH`, or grant permissions. If a dependency is missing (like `jq`), the script will exit with a helpful message showing the exact command you can run to install it yourself.
 *   **You Are In Control:** You are encouraged to read the scripts. They are heavily commented and designed for clarity.
 
@@ -416,9 +416,7 @@ IFS=$'\n\t'
 SCRIPT_NAME="$(basename "$0")"
 CONFIG_DIR="$HOME/.config/termux-ai"
 DATA_DIR="$HOME/.local/share/termux-ai"
-CACHE_DIR="$HOME/.cache/termux-ai"
 OUT_DIR="$DATA_DIR/out"
-LOG_FILE="$CACHE_DIR/run.log"
 CONFIG_FILE="$CONFIG_DIR/env"
 
 # --- Load User Config ---

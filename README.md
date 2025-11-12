@@ -264,7 +264,6 @@ All toolkit data is stored in isolated directories:
 
 - `~/.config/termux-ai/env` - Your API keys and settings
 - `~/.local/share/termux-ai/out/` - Saved AI responses
-- `~/.cache/termux-ai/run.log` - Execution logs
 
 ## Security & Privacy
 

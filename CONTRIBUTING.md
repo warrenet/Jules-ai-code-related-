@@ -387,12 +387,7 @@ Any other relevant information, mockups, or examples.
    bash -x ./ai_cli.sh -p "test"
    ```
 
-2. Check logs:
-   ```bash
-   tail -f ~/.cache/termux-ai/run.log
-   ```
-
-3. Test with dry-run:
+2. Test with dry-run:
    ```bash
    DRY_RUN=1 bash ./script.sh
    ```
