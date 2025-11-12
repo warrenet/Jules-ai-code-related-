@@ -32,6 +32,7 @@ fail() {
 }
 
 # --- Mocking Setup ---
+# shellcheck disable=SC2317  # cleanup is called via trap
 cleanup() {
     printf "\nCleaning up...\n"
     # Restore original ai_cli.sh if it exists

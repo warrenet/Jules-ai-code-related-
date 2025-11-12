@@ -28,7 +28,6 @@ VERSION="1.0.0"
 SCRIPT_NAME="$(basename "$0")"
 CONFIG_DIR="$HOME/.config/termux-ai"
 DATA_DIR="$HOME/.local/share/termux-ai"
-CACHE_DIR="$HOME/.cache/termux-ai"
 OUT_DIR="$DATA_DIR/out"
 CONFIG_FILE="$CONFIG_DIR/env"
 
