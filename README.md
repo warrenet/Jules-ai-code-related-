@@ -10,7 +10,7 @@ A collection of carefully crafted scripts that enable you to use OpenAI GPT and 
 
 ## 📦 What's Included
 
-This repository contains **two main components**:
+This repository contains **three main components**:
 
 ### 1. 🤖 Termux AI Command-Line Tools
 A suite of Bash scripts for Android/Termux that bring AI capabilities to your mobile device:
@@ -29,7 +29,18 @@ A browser-based visual tool for creating AI agent prompts:
 - Export and share agent configurations
 - Firebase integration for cloud storage
 
-Choose the tool that fits your needs, or use both together!
+### 3. 🚀 Multi-Agent Workflow System (NEW!)
+An advanced framework coordinating specialized AI agents for complex problem-solving:
+- **Research Agent** - Problem decomposition and planning
+- **Implementation Agent** - Solution development with documentation
+- **Verification Agent** - Quality assurance and security checks
+- **Performance Auditor** - Metrics analysis and ethical compliance
+- **Anomaly Detection** - Error detection and automated recovery
+- **Workflow Orchestrator** - Coordinates all agents seamlessly
+
+See [agents/AGENTS_README.md](agents/AGENTS_README.md) for complete documentation.
+
+Choose the tool that fits your needs, or use all three together!
 
 ---
 
@@ -368,6 +379,50 @@ To enable cloud storage features:
 ### Local Usage
 
 The Agent Builder works offline by default with local storage. No Firebase setup is required for basic functionality.
+
+## Multi-Agent Workflow System
+
+### Quick Start
+
+Execute an automated workflow:
+
+```bash
+bash agents/workflow_orchestrator.sh run "Create a web scraper for news" task_001
+```
+
+Or use interactive mode:
+
+```bash
+bash agents/workflow_orchestrator.sh interactive "Optimize database queries"
+```
+
+### What It Does
+
+The Multi-Agent Workflow System breaks down complex problems and coordinates specialized agents:
+
+1. **Research Agent** - Decomposes problems and creates execution plans
+2. **Implementation Agent** - Develops solutions with documented reasoning
+3. **Verification Agent** - Checks for errors, security issues, and quality
+4. **Performance Auditor** - Analyzes metrics, costs, and ethical compliance
+5. **Anomaly Detection** - Monitors health and triggers automated recovery
+
+### Key Features
+
+- **Automated Problem Solving**: End-to-end workflow automation
+- **Quality Assurance**: Multi-layer verification and security checks
+- **Performance Tracking**: Detailed metrics and cost estimation
+- **Self-Healing**: Automatic error detection and recovery
+- **Ethical Compliance**: Built-in ethics and fairness checks
+- **Full Audit Trail**: Complete logging and state management
+
+### Documentation
+
+See [agents/AGENTS_README.md](agents/AGENTS_README.md) for:
+- Detailed usage guide
+- Individual agent commands
+- API reference
+- Troubleshooting
+- Examples and best practices
 
 ## Development
 
