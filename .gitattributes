@@ -1,0 +1,25 @@
+# Ensure consistent line endings across platforms
+* text=auto
+
+# Shell scripts should always have LF line endings
+*.sh text eol=lf
+
+# JavaScript and HTML
+*.js text eol=lf
+*.html text eol=lf
+*.json text eol=lf
+
+# Documentation
+*.md text eol=lf
+
+# Configuration files
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary

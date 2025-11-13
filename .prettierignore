@@ -1,0 +1,9 @@
+# Ignore third-party scripts and CDN imports
+node_modules/
+*.min.js
+
+# Ignore generated files
+coverage/
+out/
+output/
+.cache/

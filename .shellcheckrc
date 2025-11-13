@@ -1,0 +1,19 @@
+# ShellCheck configuration for Termux AI Toolkit
+# Disables or enables specific checks
+
+# Enable all optional checks
+enable=all
+
+# Exceptions for unreachable code (used in cleanup traps)
+# SC2250: Brace style preference - both styles are valid
+# SC2312: Command substitution in printf is intentional
+# SC2292: Single [ ] vs [[ ]] style preference
+# SC2002: Useless cat is sometimes clearer for readability
+disable=SC2317,SC2250,SC2312,SC2292,SC2002
+
+# Shell directive (we use bash)
+shell=bash
+
+# External sources that we intentionally don't follow
+# (user config files loaded at runtime)
+external-sources=true
