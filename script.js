@@ -108,7 +108,7 @@ const showConfirm = (message, title = 'Confirmation') => {
             confirmModal.style.display = 'none';
             confirmModalBackdrop.style.display = 'none';
             resolve(false);
-_        };
+        };
     });
 };
 
