@@ -72,6 +72,31 @@ sudo apt-get install curl jq
 cp 01_env_template.sh ~/.config/termux-ai/env
 # Edit the file to add a test API key (if needed)
 nano ~/.config/termux-ai/env
+
+# (Optional) Install pre-commit hook for automated quality checks
+ln -s ../../scripts/pre-commit-hook.sh .git/hooks/pre-commit
+echo "Pre-commit hook installed!"
+```
+
+### Pre-commit Hook (Recommended)
+
+The repository includes a pre-commit hook that automatically checks your changes before committing:
+
+- Runs ShellCheck on modified shell scripts
+- Detects hardcoded API keys
+- Verifies shell scripts are executable
+- Checks JavaScript/HTML formatting
+
+To install the pre-commit hook:
+
+```bash
+ln -s ../../scripts/pre-commit-hook.sh .git/hooks/pre-commit
+```
+
+You can also run the checks manually:
+
+```bash
+bash scripts/pre-commit-hook.sh
 ```
 
 ## How to Contribute

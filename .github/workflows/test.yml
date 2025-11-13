@@ -41,14 +41,12 @@ jobs:
           done
           echo "All scripts are executable"
 
-      - name: Check for shellcheck warnings (if available)
+      - name: Run shellcheck (enforced)
         run: |
-          if command -v shellcheck &> /dev/null; then
-            shellcheck *.sh || echo "Shellcheck warnings found (non-fatal)"
-          else
-            echo "Shellcheck not available, skipping"
-          fi
-        continue-on-error: true
+          # ShellCheck is pre-installed on ubuntu-latest
+          echo "Running shellcheck on all scripts..."
+          shellcheck *.sh agents/*.sh
+          echo "✓ ShellCheck passed"
 
       - name: Verify installer script structure
         run: |
