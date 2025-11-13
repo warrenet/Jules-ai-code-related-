@@ -44,6 +44,7 @@ execute_full_workflow() {
     agent_log "orchestrator" "INFO" "Phase 1: Running research agent"
     
     local decomposition
+    # shellcheck disable=SC2034  # Variable captures output for error checking
     decomposition=$(bash "$SCRIPT_DIR/research_agent.sh" decompose "$problem" "$task_id")
     
     echo "Problem decomposed successfully"
@@ -71,6 +72,7 @@ execute_full_workflow() {
     agent_log "orchestrator" "INFO" "Phase 2: Running implementation agent"
     
     local impl_results
+    # shellcheck disable=SC2034  # Variable captures output for error checking
     impl_results=$(bash "$SCRIPT_DIR/implementation_agent.sh" full "$task_id")
     
     echo "Implementation completed"

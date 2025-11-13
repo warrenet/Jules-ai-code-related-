@@ -256,7 +256,8 @@ agent_execute() {
 agent_escalate() {
     local from_agent="$1"
     local issue="$2"
-    local escalation_file="$AGENT_STATE_DIR/escalation_$(date +%s).json"
+    local escalation_file
+    escalation_file="$AGENT_STATE_DIR/escalation_$(date +%s).json"
     
     jq -n \
         --arg from "$from_agent" \

@@ -278,6 +278,7 @@ main() {
         case "$provider" in
             openai) openai_call "$prompt" "$system_prompt" "$model" "$api_key" ;;
             gemini) gemini_call "$prompt" "$system_prompt" "$model" "$api_key" ;;
+            *) die "Unknown provider: $provider" ;;
         esac
     )
     printf "\n" # Newline after streaming is complete
