@@ -77,10 +77,20 @@ usage() {
     echo "  -v, --version         Show version information."
     echo "  -h, --help            Show this help message."
     echo ""
+    echo "Environment Variables:"
+    echo "  PROMPT_EVALUATION     Enable/disable vague prompt detection (default: 1)"
+    echo "                        Set to 0 to skip prompt evaluation and improvement"
+    echo ""
+    echo "Features:"
+    echo "  - Vague Prompt Detection: Automatically detects unclear prompts"
+    echo "  - Prompt Improvement: Asks clarifying questions for vague prompts"
+    echo "  - Smart Routing: Clear prompts proceed immediately"
+    echo ""
     echo "Examples:"
     echo "  echo 'Explain APIs' | $SCRIPT_NAME -p -"
     echo "  $SCRIPT_NAME -p 'Write a git commit message for a new feature'"
     echo "  $SCRIPT_NAME -f 'code.py' -s 'Review this Python code for bugs'"
+    echo "  PROMPT_EVALUATION=0 $SCRIPT_NAME -p 'fix the bug'  # Skip evaluation"
 }
 
 # --- Provider API Call Functions ---
@@ -266,6 +276,78 @@ main() {
         echo
         if [[ ! "$REPLY" =~ ^[Yy]$ ]]; then
             die "Operation cancelled by user."
+        fi
+    fi
+
+    # --- Prompt Evaluation Hook ---
+    # Check if PROMPT_EVALUATION is enabled (default: enabled)
+    local enable_prompt_eval="${PROMPT_EVALUATION:-1}"
+    if [[ "$enable_prompt_eval" -eq 1 ]]; then
+        local script_dir
+        script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        local evaluator_script="$script_dir/hooks/prompt_evaluator.sh"
+        local improver_script="$script_dir/skills/prompt_improver.sh"
+        
+        if [[ -f "$evaluator_script" ]] && [[ -f "$improver_script" ]]; then
+            log "INFO" "Evaluating prompt clarity..."
+            
+            # Source the evaluator to use its functions
+            # shellcheck source=hooks/prompt_evaluator.sh
+            source "$evaluator_script"
+            
+            # Evaluate the prompt
+            local evaluation_result
+            evaluation_result=$(evaluate_prompt "$prompt" "" "$provider" "$api_key" 2>/dev/null || echo "CLEAR")
+            
+            if [[ "$evaluation_result" == "VAGUE" ]]; then
+                log "WARN" "Prompt appears to be vague. Invoking prompt-improver skill..."
+                
+                # Source the improver to use its functions
+                # shellcheck source=skills/prompt_improver.sh
+                source "$improver_script"
+                
+                # Get clarifying questions
+                local questions
+                questions=$(improve_prompt "$prompt" "$provider" "$api_key" 2>/dev/null || echo '[]')
+                
+                # Parse and display questions
+                local question_count
+                question_count=$(echo "$questions" | jq -r 'length' 2>/dev/null || echo "0")
+                
+                if [[ "$question_count" -gt 0 ]]; then
+                    log "INFO" "To better assist you, please answer these questions:"
+                    echo ""
+                    
+                    local i=1
+                    while [[ $i -le $question_count ]]; do
+                        local question
+                        question=$(echo "$questions" | jq -r ".[$((i-1))]" 2>/dev/null || echo "")
+                        if [[ -n "$question" ]]; then
+                            echo "  $i. $question"
+                        fi
+                        ((i++))
+                    done
+                    echo ""
+                    
+                    # Read user's answers
+                    log "INFO" "Please provide your answers (press Ctrl+D when done):"
+                    local user_answers
+                    user_answers=$(cat)
+                    
+                    # Append answers to original prompt
+                    if [[ -n "$user_answers" ]]; then
+                        prompt="Original request: $prompt
+
+Additional context based on clarifying questions:
+$user_answers"
+                        log "INFO" "Prompt improved with additional context."
+                    fi
+                else
+                    log "INFO" "Could not generate clarifying questions. Proceeding with original prompt."
+                fi
+            else
+                log "INFO" "Prompt is clear. Proceeding immediately."
+            fi
         fi
     fi
 

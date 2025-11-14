@@ -50,6 +50,11 @@ export MODEL_GEMINI="gemini-1.5-flash-latest"
 # Timeout in seconds for API calls.
 export AI_TIMEOUT=60
 
+# Enable/disable vague prompt detection and improvement (default: 1 = enabled)
+# When enabled, the system evaluates prompts for clarity and asks questions if vague
+# Set to 0 to skip prompt evaluation: PROMPT_EVALUATION=0
+export PROMPT_EVALUATION=1
+
 # --- End of Configuration ---
 #
 # After editing, save the file and run:
