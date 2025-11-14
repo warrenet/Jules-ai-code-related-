@@ -14,7 +14,6 @@ IFS=$'\n\t'
 
 # --- Script Info ---
 SCRIPT_NAME="$(basename "$0")"
-HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # --- Helper Functions ---
 log() {
