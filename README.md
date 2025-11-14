@@ -40,6 +40,16 @@ An advanced framework coordinating specialized AI agents for complex problem-sol
 
 See [agents/AGENTS_README.md](agents/AGENTS_README.md) for complete documentation.
 
+### 4. 🧠 Vague Prompt Detection & Improvement (NEW!)
+An intelligent system that automatically improves unclear prompts:
+- **Prompt Evaluator Hook** - Detects vague vs. clear prompts (~189 tokens)
+- **Prompt Improver Skill** - Research and targeted question generation
+- **Smart Routing** - Clear prompts proceed immediately, vague prompts get help
+- **Context Research** - Analyzes codebase, documentation, and web resources
+- **Grounded Questions** - Asks 1-6 specific questions based on actual project context
+
+See [PROMPT_EVALUATION.md](PROMPT_EVALUATION.md) for complete documentation.
+
 Choose the tool that fits your needs, or use all three together!
 
 ---
@@ -47,6 +57,7 @@ Choose the tool that fits your needs, or use all three together!
 ## Features
 
 - **Multiple AI Providers**: Support for OpenAI (GPT-4o, GPT-4o-mini) and Google Gemini (1.5 Pro/Flash)
+- **Intelligent Prompt Evaluation**: Automatically detects and improves vague prompts
 - **Privacy-First Design**: Scripts run locally on your device, you control all data
 - **Safety by Default**: Non-destructive dry-run mode prevents accidental writes
 - **Zero Dependencies Bloat**: Uses only standard Termux tools (curl, jq)
