@@ -45,6 +45,11 @@ main() {
         usage
     fi
 
+    # Validate URL format (basic check for http/https)
+    if [[ ! "$url" =~ ^https?:// ]]; then
+        die "Invalid URL. Must start with http:// or https://"
+    fi
+
     log "Fetching content from: $url"
     local html_content
     html_content=$(curl -sL --fail "$url" --max-time 30) || die "Failed to fetch URL. Check the link or your connection."

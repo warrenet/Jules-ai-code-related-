@@ -99,10 +99,13 @@ openai_call() {
     local prompt="$1" system_prompt="$2" model="$3" api_key="$4"
     log "INFO" "Using OpenAI provider with model '$model'"
 
+    # Build messages array in OpenAI's expected format
+    # Start with the user message
     local messages_json
     messages_json=$(jq -n --arg role "user" --arg content "$prompt" \
         '[{"role": $role, "content": $content}]')
 
+    # Prepend system message if provided
     if [[ -n "$system_prompt" ]]; then
         messages_json=$(echo "$messages_json" | jq --arg role "system" --arg content "$system_prompt" '[{"role": $role, "content": $content}] + .')
     fi
@@ -113,6 +116,8 @@ openai_call() {
 
     local full_response=""
     local line
+    # Parse Server-Sent Events (SSE) stream from OpenAI API
+    # Each chunk is prefixed with "data: " and contains JSON with delta content
     while read -r line; do
         if [[ "$line" == "data: [DONE]" ]]; then
             break
@@ -121,6 +126,7 @@ openai_call() {
             local chunk
             chunk="${line#data: }"
             local content
+            # Extract the incremental content from the delta object
             content=$(echo "$chunk" | jq -r '.choices[0].delta.content // ""')
             if [[ -n "$content" ]]; then
                 printf "%s" "$content"
