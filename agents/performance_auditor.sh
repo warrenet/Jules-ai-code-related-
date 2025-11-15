@@ -151,6 +151,7 @@ check_ethics() {
     agent_log "$AGENT_NAME" "INFO" "Performing ethics check for task: $task_id"
     
     # Load implementation results
+    # shellcheck disable=SC2154  # AGENT_STATE_DIR is defined in agent_framework.sh
     local results_file="$AGENT_STATE_DIR/implementation_results_${task_id}.json"
     
     if [[ ! -f "$results_file" ]]; then

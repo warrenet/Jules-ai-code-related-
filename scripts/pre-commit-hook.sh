@@ -25,6 +25,7 @@ STAGED_SH_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.sh$'
 if [ -n "$STAGED_SH_FILES" ]; then
     echo -e "${YELLOW}Checking shell scripts with shellcheck...${NC}"
     if command -v shellcheck &> /dev/null; then
+        # shellcheck disable=SC2086  # Intentionally unquoted for word splitting
         if shellcheck $STAGED_SH_FILES; then
             echo -e "${GREEN}✓ ShellCheck passed${NC}"
         else
@@ -71,6 +72,7 @@ STAGED_JS_HTML=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(j
 if [ -n "$STAGED_JS_HTML" ]; then
     echo -e "${YELLOW}Checking JavaScript/HTML formatting...${NC}"
     if command -v npx &> /dev/null; then
+        # shellcheck disable=SC2086  # Intentionally unquoted for word splitting
         if npx prettier --check $STAGED_JS_HTML 2>&1 | grep -q "All matched files"; then
             echo -e "${GREEN}✓ JavaScript/HTML formatting correct${NC}"
         else
@@ -83,7 +85,7 @@ if [ -n "$STAGED_JS_HTML" ]; then
 fi
 
 # Exit with failure if any checks failed
-if [ $CHECKS_FAILED -eq 1 ]; then
+if [ "$CHECKS_FAILED" -eq 1 ]; then
     echo ""
     echo -e "${RED}Pre-commit checks failed. Commit aborted.${NC}"
     echo "Fix the issues above and try again."
