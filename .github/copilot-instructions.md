@@ -319,6 +319,18 @@ bash scripts/pre-commit-hook.sh
 - **Minimal pipes**: Reduce process creation overhead
 - **Caching**: Store API responses when appropriate (respect `DRY_RUN`)
 
+## Custom Agent Profiles
+
+For specialized tasks, leverage these custom agent profiles in `.github/agents/`:
+
+- **bash-expert.md** - Bash scripting, Termux compatibility, and shell best practices
+- **documentation-specialist.md** - Technical writing, user guides, and API documentation
+- **testing-expert.md** - Test development, TDD practices, and quality assurance
+- **security-expert.md** - Secure coding, input validation, and privacy protection
+- **multi-agent-specialist.md** - Multi-agent workflows and complex problem-solving
+
+When working on tasks that match these specializations, refer to the appropriate agent profile for detailed guidance and best practices specific to that domain.
+
 ## Resources
 
 - [Main README](../README.md) - User documentation
