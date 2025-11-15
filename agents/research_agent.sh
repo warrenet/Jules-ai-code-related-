@@ -1,4 +1,5 @@
 #!/data/data/com.termux/files/usr/bin/bash
+# shellcheck disable=SC2154  # AGENT_LOG_DIR, AGENT_STATE_DIR defined in sourced agent_framework.sh
 #
 # research_agent.sh
 # Research and Planning Agent - Problem decomposition and planning
