@@ -1,8 +1,15 @@
 # Termux AI Toolkit
 
+[![CI Tests](https://github.com/warrenet/Jules-ai-code-related-/actions/workflows/test.yml/badge.svg)](https://github.com/warrenet/Jules-ai-code-related-/actions/workflows/test.yml)
+[![CodeQL](https://github.com/warrenet/Jules-ai-code-related-/actions/workflows/codeql.yml/badge.svg)](https://github.com/warrenet/Jules-ai-code-related-/actions/workflows/codeql.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/warrenet/Jules-ai-code-related-)
+
 > Bring powerful AI capabilities to your Android device with simple, safe, and privacy-focused Bash scripts.
 
 **⚡ New here?** Check out the [Quick Start Guide](QUICKSTART.md) to get up and running in 5 minutes!
+
+**🚀 Ready to deploy?** See the [Deployment Guide](DEPLOYMENT.md) for production setup!
 
 ---
 
@@ -437,16 +444,117 @@ See [agents/AGENTS_README.md](agents/AGENTS_README.md) for:
 
 ## Development
 
+### Quick Start (3 Options)
+
+#### Option 1: GitHub Codespaces (Recommended)
+
+Click the "Open in GitHub Codespaces" badge above or:
+
+1. Click "Code" → "Codespaces" → "Create codespace"
+2. Wait ~2 minutes for setup
+3. Everything pre-configured and ready!
+
+Perfect for:
+- Mobile development (works in Android Chrome)
+- Quick contributions
+- Testing without local setup
+
+#### Option 2: Local Development
+
+```bash
+# Clone and setup
+git clone https://github.com/warrenet/Jules-ai-code-related-.git
+cd Jules-ai-code-related-
+make install
+
+# Run quality checks
+make dev-check
+
+# Run tests
+make test
+```
+
+#### Option 3: Termux (Android)
+
+```bash
+# Install dependencies
+pkg install git curl jq shellcheck
+
+# Clone and run
+git clone https://github.com/warrenet/Jules-ai-code-related-.git
+cd Jules-ai-code-related-
+make test
+```
+
+### Development Tools
+
+The repository includes:
+
+- **Makefile** - Common tasks (`make help` for all targets)
+- **.devcontainer/** - GitHub Codespaces configuration
+- **.vscode/** - VS Code tasks and extensions
+- **scripts/dev_check.sh** - Run all quality checks locally
+- **scripts/install_deps.sh** - Automated dependency installation
+
+### Make Targets
+
+```bash
+make help       # Show all available targets
+make test       # Run test suite
+make lint       # Run shellcheck on all scripts
+make format     # Format JavaScript/HTML with prettier
+make dev-check  # Run lint + test (recommended before commit)
+make clean      # Remove temporary files
+make install    # Install dependencies
+```
+
 ### Repository Structure
 
-For a detailed explanation of the codebase architecture, design decisions, and how to extend the toolkit, see [ARCHITECTURE.md](ARCHITECTURE.md).
+For a detailed explanation of the codebase architecture, design decisions, and how to extend the toolkit, see:
+
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Technical architecture
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Deployment guide
+- **[docs/](docs/)** - Architecture Decision Records (ADRs)
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Contribution guidelines
 
 ### Running Tests
 
 ```bash
+# Using Make (recommended)
+make test
+
+# Or directly
 bash tests.sh
-# Or use the launcher:
+bash tests_prompt_eval.sh
+
+# Or using the launcher
 bash termux-ai test
+```
+
+### Code Quality
+
+Run all quality checks before committing:
+
+```bash
+# Full check (lint + test + secrets scan)
+make dev-check
+
+# Or use the helper script
+bash scripts/dev_check.sh
+```
+
+The checks will:
+1. Run shellcheck on all scripts
+2. Run complete test suite
+3. Check for hardcoded secrets
+4. Verify all scripts are executable
+
+### Pre-commit Hook (Optional)
+
+Install automatic checks:
+
+```bash
+ln -s ../../scripts/pre-commit-hook.sh .git/hooks/pre-commit
 ```
 
 ### Contributing
@@ -454,8 +562,9 @@ bash termux-ai test
 Contributions are welcome! Please:
 1. Fork the repository
 2. Create a feature branch
-3. Add tests for new features
-4. Ensure all tests pass
+3. Run `make dev-check` before committing
+4. Add tests for new features
+5. Ensure all tests pass
 5. Submit a pull request
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
