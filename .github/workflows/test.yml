@@ -18,7 +18,9 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl jq kcov
+          sudo apt-get install -y curl jq
+          # Try to install kcov, but don't fail if unavailable (not in Ubuntu 24.04 repos)
+          sudo apt-get install -y kcov || echo "kcov not available, skipping coverage collection"
 
       - name: Make scripts executable
         run: chmod +x *.sh
@@ -30,12 +32,17 @@ jobs:
 
       - name: Run test suite with coverage
         run: |
-          # Run tests with kcov for coverage
-          mkdir -p coverage
-          kcov --exclude-pattern=/usr/include coverage bash tests.sh || true
-          echo "Coverage collection completed"
+          # Run tests with kcov for coverage if available
+          if command -v kcov &> /dev/null; then
+            echo "Running tests with kcov coverage collection..."
+            mkdir -p coverage
+            kcov --exclude-pattern=/usr/include coverage bash tests.sh || true
+            echo "Coverage collection completed"
+          else
+            echo "kcov not available, running tests without coverage collection..."
+          fi
           
-          # Also run tests normally to ensure they pass
+          # Always run tests normally to ensure they pass
           bash tests.sh
 
       - name: Verify all scripts are executable
