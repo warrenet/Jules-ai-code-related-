@@ -1,0 +1,131 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18, 20]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for package.json
+        id: check-package
+        run: |
+          if [ -f "package.json" ]; then
+            echo "has_package=true" >> $GITHUB_OUTPUT
+            echo "Found package.json - Node.js project detected"
+          else
+            echo "has_package=false" >> $GITHUB_OUTPUT
+            echo "No package.json found - skipping Node.js setup"
+          fi
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        if: steps.check-package.outputs.has_package == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        if: steps.check-package.outputs.has_package == 'true'
+        run: npm ci
+
+      - name: Lint
+        if: steps.check-package.outputs.has_package == 'true'
+        run: |
+          if grep -q '"lint"' package.json; then
+            npm run lint
+          else
+            echo "No lint script found in package.json, skipping"
+          fi
+
+      - name: Build
+        if: steps.check-package.outputs.has_package == 'true'
+        run: |
+          if grep -q '"build"' package.json; then
+            npm run build
+          else
+            echo "No build script found in package.json, skipping"
+          fi
+
+      - name: Test
+        if: steps.check-package.outputs.has_package == 'true'
+        run: |
+          if grep -q '"test"' package.json; then
+            npm run test
+          else
+            echo "No test script found in package.json, skipping"
+          fi
+
+      - name: Upload artifact
+        if: steps.check-package.outputs.has_package == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts-node-${{ matrix.node-version }}
+          path: |
+            dist/
+            build/
+            out/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      # Skeleton job for non-Node.js projects
+      - name: Print repository metadata
+        if: steps.check-package.outputs.has_package == 'false'
+        run: |
+          echo "=== Repository Metadata ==="
+          echo "Repository: ${{ github.repository }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Actor: ${{ github.actor }}"
+          echo "Event: ${{ github.event_name }}"
+          echo ""
+          echo "=== Repository Structure ==="
+          ls -lah
+          echo ""
+          echo "=== Shell Scripts Found ==="
+          find . -type f -name "*.sh" | head -20
+
+      - name: ShellCheck for shell scripts
+        if: steps.check-package.outputs.has_package == 'false'
+        run: |
+          echo "Running shellcheck on shell scripts..."
+          if command -v shellcheck &> /dev/null; then
+            # Find all shell scripts and run shellcheck
+            find . -type f -name "*.sh" -not -path "./.git/*" | while read -r script; do
+              echo "Checking: $script"
+              shellcheck "$script" || true
+            done
+            echo "✓ ShellCheck completed"
+          else
+            echo "shellcheck not found, installing..."
+            sudo apt-get update && sudo apt-get install -y shellcheck
+            find . -type f -name "*.sh" -not -path "./.git/*" | while read -r script; do
+              echo "Checking: $script"
+              shellcheck "$script" || true
+            done
+          fi
+
+      - name: Upload shell script analysis results
+        if: steps.check-package.outputs.has_package == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: shell-analysis-results
+          path: |
+            *.sh
+            agents/*.sh
+            scripts/*.sh
+          if-no-files-found: ignore
+          retention-days: 7
