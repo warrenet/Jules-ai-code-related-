@@ -31,4 +31,4 @@ jobs:
           find . -name "*.sh" -type f | head -20
           echo ""
           echo "Note: This repository does not have a package.json file."
-          echo "For Node.js testing with npm, add package.json to the repository."
+          echo "For Node.js testing with npm, add package.json to the repo."
