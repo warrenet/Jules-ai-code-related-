@@ -18,6 +18,7 @@ updates:
       - "warrenet"
 
   # npm dependencies (for future package.json if added)
+  # npm dependencies
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
@@ -27,6 +28,8 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: "chore"
+      prefix: "build"
+      prefix: "deps"
       include: "scope"
     labels:
       - "dependencies"
