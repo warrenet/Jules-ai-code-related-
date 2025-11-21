@@ -17,6 +17,7 @@ updates:
     reviewers:
       - "warrenet"
 
+  # npm dependencies (for future package.json if added)
   # npm dependencies
   - package-ecosystem: "npm"
     directory: "/"
@@ -26,6 +27,7 @@ updates:
       time: "09:00"
     open-pull-requests-limit: 5
     commit-message:
+      prefix: "chore"
       prefix: "build"
       prefix: "deps"
       include: "scope"
