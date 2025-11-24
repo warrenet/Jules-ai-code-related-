@@ -1,0 +1,42 @@
+{
+  "name": "termux-ai-toolkit",
+  "version": "1.0.0",
+  "description": "Comprehensive AI toolkit featuring CLI tools for Termux, Agent Builder web app, and multi-agent workflow system",
+  "private": true,
+  "scripts": {
+    "format": "prettier --write script.js index.html",
+    "format:check": "prettier --check script.js index.html",
+    "lint": "make lint",
+    "test": "make test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/warrenet/Jules-ai-code-related-.git"
+  },
+  "keywords": [
+    "termux",
+    "android",
+    "ai",
+    "openai",
+    "gemini",
+    "bash",
+    "cli",
+    "agent-builder",
+    "firebase",
+    "ai-toolkit",
+    "multi-agent",
+    "prompt-engineering"
+  ],
+  "author": "warrenet and contributors",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/warrenet/Jules-ai-code-related-/issues"
+  },
+  "homepage": "https://github.com/warrenet/Jules-ai-code-related-#readme",
+  "devDependencies": {
+    "prettier": "^3.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

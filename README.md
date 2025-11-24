@@ -2,6 +2,7 @@
 
 [![CI Tests](https://github.com/warrenet/Jules-ai-code-related-/actions/workflows/test.yml/badge.svg)](https://github.com/warrenet/Jules-ai-code-related-/actions/workflows/test.yml)
 [![CodeQL](https://github.com/warrenet/Jules-ai-code-related-/actions/workflows/codeql.yml/badge.svg)](https://github.com/warrenet/Jules-ai-code-related-/actions/workflows/codeql.yml)
+[![GitHub Pages](https://github.com/warrenet/Jules-ai-code-related-/actions/workflows/deploy.yml/badge.svg)](https://github.com/warrenet/Jules-ai-code-related-/actions/workflows/deploy.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/warrenet/Jules-ai-code-related-)
 
@@ -31,6 +32,7 @@ A suite of Bash scripts for Android/Termux that bring AI capabilities to your mo
 
 ### 2. 🎨 Agent Builder Web Application
 A browser-based visual tool for creating AI agent prompts:
+- **[🌐 Try Live Demo](https://warrenet.github.io/Jules-ai-code-related-)** - No installation required!
 - **`index.html`** + **`script.js`** - Interactive drag-and-drop agent builder
 - Design complex AI agent workflows visually
 - Export and share agent configurations
@@ -364,17 +366,22 @@ The Agent Builder is a visual, browser-based tool for designing AI agent prompts
 
 ### Quick Start
 
-1. **Open the Application**:
+1. **Try the Live Demo**:
+   - 🌐 **[Open Agent Builder](https://warrenet.github.io/Jules-ai-code-related-)** (GitHub Pages)
+   - No installation required - works directly in your browser
+   - All data stored locally in your browser (privacy-first)
+
+2. **Open Locally**:
    - Simply open `index.html` in any modern web browser
    - Or deploy to a web server for remote access
 
-2. **Build Your Agent**:
+3. **Build Your Agent**:
    - Click on blocks in the toolbox to add them to the canvas
    - Drag blocks to reorder them
    - Click on any block to edit its content
    - Use the "Generate" button to see the complete prompt
 
-3. **Save and Share**:
+4. **Save and Share**:
    - Click "Save" to store your agent configuration
    - Click "Load" to retrieve saved configurations
    - Copy the generated prompt to use with any AI service
