@@ -82,6 +82,7 @@ implement_full_plan() {
     agent_log "$AGENT_NAME" "INFO" "Implementing full plan for task: $task_id"
     
     # Load execution plan
+    # shellcheck disable=SC2154  # AGENT_STATE_DIR is defined in agent_framework.sh
     local plan_file="$AGENT_STATE_DIR/execution_plan_${task_id}.json"
     
     if [[ ! -f "$plan_file" ]]; then

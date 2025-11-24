@@ -171,11 +171,13 @@ monitor_health() {
     
     # Check log sizes
     local log_dir_size
+    # shellcheck disable=SC2154  # AGENT_LOG_DIR is defined in agent_framework.sh
     log_dir_size=$(du -sh "$AGENT_LOG_DIR" 2>/dev/null | cut -f1 || echo "0")
     health_report+=("Log directory size: $log_dir_size")
     
     # Check state directory
     local state_dir_size
+    # shellcheck disable=SC2154  # AGENT_STATE_DIR is defined in agent_framework.sh
     state_dir_size=$(du -sh "$AGENT_STATE_DIR" 2>/dev/null | cut -f1 || echo "0")
     health_report+=("State directory size: $state_dir_size")
     

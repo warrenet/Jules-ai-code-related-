@@ -48,7 +48,7 @@
     <div class="relative min-h-screen md:flex">
       <!-- Mobile Menu Button -->
       <div class="absolute top-4 left-4 md:hidden">
-        <button id="mobile-menu-btn" class="text-white p-2 bg-gray-800/50 rounded-md">
+        <button id="mobile-menu-btn" class="text-white p-2 bg-gray-800/50 rounded-md" aria-label="Open menu">
           <i class="fas fa-bars"></i>
         </button>
       </div>
@@ -60,7 +60,7 @@
       >
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-xl font-bold text-white"><i class="fas fa-cubes mr-2"></i>Component Blocks</h2>
-          <button id="close-toolbox-btn" class="md:hidden text-white p-2">
+          <button id="close-toolbox-btn" class="md:hidden text-white p-2" aria-label="Close menu">
             <i class="fas fa-times"></i>
           </button>
         </div>
@@ -179,7 +179,7 @@
       <div class="p-6">
         <div class="flex justify-between items-center mb-4">
           <h2 id="modal-title" class="text-xl font-bold text-white">Configure Block</h2>
-          <button id="close-modal-btn" class="text-gray-400 hover:text-white">&times;</button>
+          <button id="close-modal-btn" class="text-gray-400 hover:text-white" aria-label="Close configuration">&times;</button>
         </div>
         <textarea
           id="modal-textarea"
@@ -211,7 +211,7 @@
       <div class="p-6">
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-xl font-bold text-white">Generated Agent Prompt</h2>
-          <button id="close-prompt-modal-btn" class="text-gray-400 hover:text-white">&times;</button>
+          <button id="close-prompt-modal-btn" class="text-gray-400 hover:text-white" aria-label="Close prompt modal">&times;</button>
         </div>
         <div class="relative">
           <pre
@@ -245,7 +245,7 @@
       <div class="p-6">
         <div class="flex justify-between items-center mb-4">
           <h2 id="alert-modal-title" class="text-xl font-bold text-white">Alert</h2>
-          <button id="close-alert-modal-btn" class="text-gray-400 hover:text-white">&times;</button>
+          <button id="close-alert-modal-btn" class="text-gray-400 hover:text-white" aria-label="Close alert">&times;</button>
         </div>
         <p id="alert-modal-message" class="text-gray-300"></p>
         <div class="mt-4 flex justify-end">
@@ -268,7 +268,7 @@
       <div class="p-6">
         <div class="flex justify-between items-center mb-4">
           <h2 id="confirm-modal-title" class="text-xl font-bold text-white">Confirmation</h2>
-          <button id="close-confirm-modal-btn" class="text-gray-400 hover:text-white">&times;</button>
+          <button id="close-confirm-modal-btn" class="text-gray-400 hover:text-white" aria-label="Close confirmation">&times;</button>
         </div>
         <p id="confirm-modal-message" class="text-gray-300"></p>
         <div class="mt-4 flex justify-end space-x-2">

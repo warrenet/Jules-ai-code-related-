@@ -119,6 +119,7 @@ create_execution_plan() {
     local steps
     steps=$(echo "$decomposition" | jq -r '.steps // []' 2>/dev/null || echo "[]")
     
+    # shellcheck disable=SC2154  # AGENT_STATE_DIR is defined in agent_framework.sh
     local plan_file="$AGENT_STATE_DIR/execution_plan_${task_id}.json"
     jq -n \
         --arg task_id "$task_id" \

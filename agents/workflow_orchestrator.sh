@@ -134,6 +134,7 @@ execute_full_workflow() {
     agent_log "orchestrator" "INFO" "Workflow execution completed"
     
     # Generate final summary
+    # shellcheck disable=SC2154  # AGENT_STATE_DIR is defined in agent_framework.sh
     local summary_file="$AGENT_STATE_DIR/workflow_summary_${task_id}.json"
     jq -n \
         --arg task_id "$task_id" \
