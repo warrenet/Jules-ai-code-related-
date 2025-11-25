@@ -253,6 +253,5 @@ For detailed guidance, refer to:
 - `.github/agents/security-expert.md` - Security review checklist
 - `.github/agents/bash-expert.md` - Bash code patterns
 - `.github/agents/testing-expert.md` - Testing best practices
-- `CODE_REVIEW.md` - Additional review guidance
 
 Remember: Code review is about maintaining quality and helping contributors improve, not just finding problems.
