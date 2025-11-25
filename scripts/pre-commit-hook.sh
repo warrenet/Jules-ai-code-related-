@@ -25,7 +25,8 @@ STAGED_SH_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.sh$'
 if [ -n "$STAGED_SH_FILES" ]; then
     echo -e "${YELLOW}Checking shell scripts with shellcheck...${NC}"
     if command -v shellcheck &> /dev/null; then
-        if shellcheck $STAGED_SH_FILES; then
+        # Use xargs to properly handle newline-separated file list
+        if echo "$STAGED_SH_FILES" | xargs -r shellcheck; then
             echo -e "${GREEN}✓ ShellCheck passed${NC}"
         else
             echo -e "${RED}✗ ShellCheck found issues${NC}"
@@ -50,11 +51,11 @@ fi
 if [ -n "$STAGED_SH_FILES" ]; then
     echo -e "${YELLOW}Checking script permissions...${NC}"
     NON_EXECUTABLE=""
-    for script in $STAGED_SH_FILES; do
-        if [ -f "$script" ] && [ ! -x "$script" ]; then
+    while IFS= read -r script; do
+        if [ -n "$script" ] && [ -f "$script" ] && [ ! -x "$script" ]; then
             NON_EXECUTABLE="$NON_EXECUTABLE $script"
         fi
-    done
+    done <<< "$STAGED_SH_FILES"
     
     if [ -n "$NON_EXECUTABLE" ]; then
         echo -e "${RED}✗ These scripts are not executable:${NC}"
@@ -71,10 +72,11 @@ STAGED_JS_HTML=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(j
 if [ -n "$STAGED_JS_HTML" ]; then
     echo -e "${YELLOW}Checking JavaScript/HTML formatting...${NC}"
     if command -v npx &> /dev/null; then
-        if npx prettier --check $STAGED_JS_HTML 2>&1 | grep -q "All matched files"; then
+        # Use xargs to properly handle newline-separated file list
+        if echo "$STAGED_JS_HTML" | xargs -r npx prettier --check 2>&1 | grep -q "All matched files"; then
             echo -e "${GREEN}✓ JavaScript/HTML formatting correct${NC}"
         else
-            echo -e "${YELLOW}⚠ JavaScript/HTML not formatted. Run: npx prettier --write $STAGED_JS_HTML${NC}"
+            echo -e "${YELLOW}⚠ JavaScript/HTML not formatted. Run: npx prettier --write on staged JS/HTML files${NC}"
             # Don't fail on formatting, just warn
         fi
     else
@@ -83,7 +85,7 @@ if [ -n "$STAGED_JS_HTML" ]; then
 fi
 
 # Exit with failure if any checks failed
-if [ $CHECKS_FAILED -eq 1 ]; then
+if [ "$CHECKS_FAILED" -eq 1 ]; then
     echo ""
     echo -e "${RED}Pre-commit checks failed. Commit aborted.${NC}"
     echo "Fix the issues above and try again."
