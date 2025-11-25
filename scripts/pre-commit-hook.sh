@@ -51,11 +51,11 @@ fi
 if [ -n "$STAGED_SH_FILES" ]; then
     echo -e "${YELLOW}Checking script permissions...${NC}"
     NON_EXECUTABLE=""
-    for script in $STAGED_SH_FILES; do
-        if [ -f "$script" ] && [ ! -x "$script" ]; then
+    while IFS= read -r script; do
+        if [ -n "$script" ] && [ -f "$script" ] && [ ! -x "$script" ]; then
             NON_EXECUTABLE="$NON_EXECUTABLE $script"
         fi
-    done
+    done <<< "$STAGED_SH_FILES"
     
     if [ -n "$NON_EXECUTABLE" ]; then
         echo -e "${RED}✗ These scripts are not executable:${NC}"
