@@ -18,7 +18,7 @@ cd "$(dirname "$0")/.."
 echo "📝 Running shellcheck..."
 if command -v shellcheck >/dev/null 2>&1; then
     # Run shellcheck and capture output
-    if shellcheck -S warning *.sh agents/*.sh scripts/*.sh 2>/dev/null; then
+    if shellcheck -S warning -- *.sh agents/*.sh scripts/*.sh 2>/dev/null; then
         echo "✓ ShellCheck passed (no errors or warnings)"
     else
         echo "⚠️  ShellCheck found warnings or errors (see above)"
