@@ -1,8 +1,33 @@
-Review the following code files for issues:
-- Check for code style consistency according to the project's style guide.
-- Identify and fix any security vulnerabilities (e.g., input validation, use of secrets).
-- Ensure all functions and classes are properly documented.
-- Look for performance bottlenecks and suggest optimizations.
-- Verify that all code changes are covered by tests and that tests pass.
-- Confirm that error handling is robust and user-friendly.
-For any problems found, provide a clear description and implement a fix following best practices.
+# Jules AI Code Review Instructions
+
+Follow this checklist whenever you review or update code in this repository.
+
+## Files and Components to Inspect
+- **Bash scripts** (`*.sh`, `termux-ai/`): check environment scripts, installers, and CLI tools.
+- **Web UI** (`index.html`, `script.js`, `optional_widget_setup.md`): ensure UI logic and documentation stay aligned.
+- **Workflows & automation** (`.github/workflows/`): confirm CI behaves as expected.
+- **Documentation** (`README*.md`, `QUICKSTART.md`, `ARCHITECTURE.md`): keep examples and references accurate.
+
+## Review Checklist
+1. **Code style & formatting**
+   - Shell: POSIX-compatible where practical, `set -euo pipefail` when safe, no trailing whitespace.
+   - JavaScript/HTML: consistent indentation, semantic markup, and accessible labels.
+2. **Security**
+   - Never commit secrets or API keys; require configuration via environment files.
+   - Validate user input and sanitize shell commands; prefer `printf`/`cat` over `echo` for user data.
+3. **Documentation**
+   - Ensure functions, scripts, and major blocks have clear comments or usage examples.
+   - Update changelog or guides when behavior changes.
+4. **Performance & reliability**
+   - Avoid unnecessary subshells or repeated network calls.
+   - For web code, debounce expensive handlers and lazy-load assets when possible.
+5. **Testing & verification**
+   - Add or update tests covering new behavior.
+   - Run `bash tests.sh` and include relevant manual test notes.
+6. **Error handling & UX**
+   - Provide actionable error messages and non-zero exit codes for failures.
+   - Ensure web UI gracefully handles offline/API failure states.
+
+## Fixing Issues
+- When you identify a problem, describe the root cause, reproduction steps (expected vs. actual), the impacted file(s), and user-facing consequences.
+- Implement the fix following project conventions, update docs where behavior changes, and add regression tests or manual validation notes before submitting.
