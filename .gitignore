@@ -25,6 +25,9 @@ output/
 cache/
 .cache/
 
+# Dependency installs
+node_modules/
+
 # User-specific config
 ~/.config/termux-ai/
 ~/.local/share/termux-ai/
@@ -38,3 +41,4 @@ cache/
 # Test artifacts
 test_output/
 coverage/
+*.coverage

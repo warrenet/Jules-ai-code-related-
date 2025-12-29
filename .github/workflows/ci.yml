@@ -1,0 +1,132 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  detect-project-type:
+    name: Detect Project Type
+    runs-on: ubuntu-latest
+    outputs:
+      has-package-json: ${{ steps.check.outputs.has-package-json }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Check for package.json
+        id: check
+        run: |
+          if [ -f "package.json" ]; then
+            echo "has-package-json=true" >> $GITHUB_OUTPUT
+          else
+            echo "has-package-json=false" >> $GITHUB_OUTPUT
+          fi
+
+  node-ci:
+    name: Node.js CI (Node ${{ matrix.node-version }})
+    needs: detect-project-type
+    if: needs.detect-project-type.outputs.has-package-json == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18, 20]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run lint
+        if: hashFiles('package.json') != '' && contains(fromJSON('["lint", "lint:check"]'), 'lint')
+        run: |
+          if npm run --silent 2>&1 | grep -q "lint"; then
+            npm run lint
+          else
+            echo "No lint script found, skipping"
+          fi
+
+      - name: Run build
+        if: hashFiles('package.json') != '' && contains(fromJSON('["build"]'), 'build')
+        run: |
+          if npm run --silent 2>&1 | grep -q "build"; then
+            npm run build
+          else
+            echo "No build script found, skipping"
+          fi
+
+      - name: Run tests
+        if: hashFiles('package.json') != '' && contains(fromJSON('["test"]'), 'test')
+        run: |
+          if npm run --silent 2>&1 | grep -q "test"; then
+            npm test
+          else
+            echo "No test script found, skipping"
+          fi
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: node-${{ matrix.node-version }}-artifacts
+          path: |
+            dist/
+            build/
+            coverage/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  shell-ci:
+    name: Shell Scripts CI
+    needs: detect-project-type
+    if: needs.detect-project-type.outputs.has-package-json == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Display repository metadata
+        run: |
+          echo "Repository: ${{ github.repository }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Author: ${{ github.actor }}"
+          echo ""
+          echo "Repository structure:"
+          find . -maxdepth 2 -type f -name "*.sh" -o -name "*.md" | sort
+
+      - name: Install shellcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+
+      - name: Run shellcheck on shell scripts
+        run: |
+          echo "Running shellcheck on all shell scripts..."
+          shell_scripts=$(find . -type f -name "*.sh" ! -path "./.git/*")
+          if [ -n "$shell_scripts" ]; then
+            echo "$shell_scripts" | xargs shellcheck
+            echo "✓ ShellCheck passed for all scripts"
+          else
+            echo "No shell scripts found to check"
+          fi
+
+      - name: Verify scripts are executable
+        run: |
+          echo "Checking executable permissions..."
+          non_executable=$(find . -type f -name "*.sh" ! -path "./.git/*" ! -perm -u+x)
+          if [ -n "$non_executable" ]; then
+            echo "Warning: The following scripts are not executable:"
+            echo "$non_executable"
+          else
+            echo "✓ All shell scripts are executable"
+          fi

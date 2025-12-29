@@ -1,0 +1,29 @@
+# This file defines code owners for the repository
+# Code owners are automatically requested for review when someone opens a pull request
+
+# Default owner for everything in the repo
+* @warrenet
+
+# Shell scripts and core toolkit
+*.sh @warrenet
+termux-ai @warrenet
+
+# Agent framework
+/agents/ @warrenet
+
+# Web application (Agent Builder)
+index.html @warrenet
+script.js @warrenet
+
+# Documentation
+*.md @warrenet
+/docs/ @warrenet
+
+# CI/CD and GitHub configuration
+/.github/ @warrenet
+
+# Configuration files
+.shellcheckrc @warrenet
+.prettierrc.json @warrenet
+.editorconfig @warrenet
+.gitattributes @warrenet

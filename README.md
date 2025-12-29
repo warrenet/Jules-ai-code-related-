@@ -1,8 +1,16 @@
 # Termux AI Toolkit
 
+[![CI Tests](https://github.com/warrenet/Jules-ai-code-related-/actions/workflows/test.yml/badge.svg)](https://github.com/warrenet/Jules-ai-code-related-/actions/workflows/test.yml)
+[![CodeQL](https://github.com/warrenet/Jules-ai-code-related-/actions/workflows/codeql.yml/badge.svg)](https://github.com/warrenet/Jules-ai-code-related-/actions/workflows/codeql.yml)
+[![GitHub Pages](https://github.com/warrenet/Jules-ai-code-related-/actions/workflows/deploy.yml/badge.svg)](https://github.com/warrenet/Jules-ai-code-related-/actions/workflows/deploy.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/warrenet/Jules-ai-code-related-)
+
 > Bring powerful AI capabilities to your Android device with simple, safe, and privacy-focused Bash scripts.
 
 **⚡ New here?** Check out the [Quick Start Guide](QUICKSTART.md) to get up and running in 5 minutes!
+
+**🚀 Ready to deploy?** See the [Deployment Guide](DEPLOYMENT.md) for production setup!
 
 ---
 
@@ -10,7 +18,7 @@ A collection of carefully crafted scripts that enable you to use OpenAI GPT and 
 
 ## 📦 What's Included
 
-This repository contains **two main components**:
+This repository contains **three main components**:
 
 ### 1. 🤖 Termux AI Command-Line Tools
 A suite of Bash scripts for Android/Termux that bring AI capabilities to your mobile device:
@@ -24,18 +32,41 @@ A suite of Bash scripts for Android/Termux that bring AI capabilities to your mo
 
 ### 2. 🎨 Agent Builder Web Application
 A browser-based visual tool for creating AI agent prompts:
+- **[🌐 Try Live Demo](https://warrenet.github.io/Jules-ai-code-related-)** - No installation required!
 - **`index.html`** + **`script.js`** - Interactive drag-and-drop agent builder
 - Design complex AI agent workflows visually
 - Export and share agent configurations
 - Firebase integration for cloud storage
 
-Choose the tool that fits your needs, or use both together!
+### 3. 🚀 Multi-Agent Workflow System (NEW!)
+An advanced framework coordinating specialized AI agents for complex problem-solving:
+- **Research Agent** - Problem decomposition and planning
+- **Implementation Agent** - Solution development with documentation
+- **Verification Agent** - Quality assurance and security checks
+- **Performance Auditor** - Metrics analysis and ethical compliance
+- **Anomaly Detection** - Error detection and automated recovery
+- **Workflow Orchestrator** - Coordinates all agents seamlessly
+
+See [agents/AGENTS_README.md](agents/AGENTS_README.md) for complete documentation.
+
+### 4. 🧠 Vague Prompt Detection & Improvement (NEW!)
+An intelligent system that automatically improves unclear prompts:
+- **Prompt Evaluator Hook** - Detects vague vs. clear prompts (~189 tokens)
+- **Prompt Improver Skill** - Research and targeted question generation
+- **Smart Routing** - Clear prompts proceed immediately, vague prompts get help
+- **Context Research** - Analyzes codebase, documentation, and web resources
+- **Grounded Questions** - Asks 1-6 specific questions based on actual project context
+
+See [PROMPT_EVALUATION.md](PROMPT_EVALUATION.md) for complete documentation.
+
+Choose the tool that fits your needs, or use all three together!
 
 ---
 
 ## Features
 
 - **Multiple AI Providers**: Support for OpenAI (GPT-4o, GPT-4o-mini) and Google Gemini (1.5 Pro/Flash)
+- **Intelligent Prompt Evaluation**: Automatically detects and improves vague prompts
 - **Privacy-First Design**: Scripts run locally on your device, you control all data
 - **Safety by Default**: Non-destructive dry-run mode prevents accidental writes
 - **Zero Dependencies Bloat**: Uses only standard Termux tools (curl, jq)
@@ -335,17 +366,22 @@ The Agent Builder is a visual, browser-based tool for designing AI agent prompts
 
 ### Quick Start
 
-1. **Open the Application**:
+1. **Try the Live Demo**:
+   - 🌐 **[Open Agent Builder](https://warrenet.github.io/Jules-ai-code-related-)** (GitHub Pages)
+   - No installation required - works directly in your browser
+   - All data stored locally in your browser (privacy-first)
+
+2. **Open Locally**:
    - Simply open `index.html` in any modern web browser
    - Or deploy to a web server for remote access
 
-2. **Build Your Agent**:
+3. **Build Your Agent**:
    - Click on blocks in the toolbox to add them to the canvas
    - Drag blocks to reorder them
    - Click on any block to edit its content
    - Use the "Generate" button to see the complete prompt
 
-3. **Save and Share**:
+4. **Save and Share**:
    - Click "Save" to store your agent configuration
    - Click "Load" to retrieve saved configurations
    - Copy the generated prompt to use with any AI service
@@ -369,18 +405,163 @@ To enable cloud storage features:
 
 The Agent Builder works offline by default with local storage. No Firebase setup is required for basic functionality.
 
+## Multi-Agent Workflow System
+
+### Quick Start
+
+Execute an automated workflow:
+
+```bash
+bash agents/workflow_orchestrator.sh run "Create a web scraper for news" task_001
+```
+
+Or use interactive mode:
+
+```bash
+bash agents/workflow_orchestrator.sh interactive "Optimize database queries"
+```
+
+### What It Does
+
+The Multi-Agent Workflow System breaks down complex problems and coordinates specialized agents:
+
+1. **Research Agent** - Decomposes problems and creates execution plans
+2. **Implementation Agent** - Develops solutions with documented reasoning
+3. **Verification Agent** - Checks for errors, security issues, and quality
+4. **Performance Auditor** - Analyzes metrics, costs, and ethical compliance
+5. **Anomaly Detection** - Monitors health and triggers automated recovery
+
+### Key Features
+
+- **Automated Problem Solving**: End-to-end workflow automation
+- **Quality Assurance**: Multi-layer verification and security checks
+- **Performance Tracking**: Detailed metrics and cost estimation
+- **Self-Healing**: Automatic error detection and recovery
+- **Ethical Compliance**: Built-in ethics and fairness checks
+- **Full Audit Trail**: Complete logging and state management
+
+### Documentation
+
+See [agents/AGENTS_README.md](agents/AGENTS_README.md) for:
+- Detailed usage guide
+- Individual agent commands
+- API reference
+- Troubleshooting
+- Examples and best practices
+
 ## Development
+
+### Quick Start (3 Options)
+
+#### Option 1: GitHub Codespaces (Recommended)
+
+Click the "Open in GitHub Codespaces" badge above or:
+
+1. Click "Code" → "Codespaces" → "Create codespace"
+2. Wait ~2 minutes for setup
+3. Everything pre-configured and ready!
+
+Perfect for:
+- Mobile development (works in Android Chrome)
+- Quick contributions
+- Testing without local setup
+
+#### Option 2: Local Development
+
+```bash
+# Clone and setup
+git clone https://github.com/warrenet/Jules-ai-code-related-.git
+cd Jules-ai-code-related-
+make install
+
+# Run quality checks
+make dev-check
+
+# Run tests
+make test
+```
+
+#### Option 3: Termux (Android)
+
+```bash
+# Install dependencies
+pkg install git curl jq shellcheck
+
+# Clone and run
+git clone https://github.com/warrenet/Jules-ai-code-related-.git
+cd Jules-ai-code-related-
+make test
+```
+
+### Development Tools
+
+The repository includes:
+
+- **Makefile** - Common tasks (`make help` for all targets)
+- **.devcontainer/** - GitHub Codespaces configuration
+- **.vscode/** - VS Code tasks and extensions
+- **scripts/dev_check.sh** - Run all quality checks locally
+- **scripts/install_deps.sh** - Automated dependency installation
+
+### Make Targets
+
+```bash
+make help       # Show all available targets
+make test       # Run test suite
+make lint       # Run shellcheck on all scripts
+make format     # Format JavaScript/HTML with prettier
+make dev-check  # Run lint + test (recommended before commit)
+make clean      # Remove temporary files
+make install    # Install dependencies
+```
 
 ### Repository Structure
 
-For a detailed explanation of the codebase architecture, design decisions, and how to extend the toolkit, see [ARCHITECTURE.md](ARCHITECTURE.md).
+For a detailed explanation of the codebase architecture, design decisions, and how to extend the toolkit, see:
+
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Technical architecture
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Deployment guide
+- **[docs/](docs/)** - Architecture Decision Records (ADRs)
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Contribution guidelines
 
 ### Running Tests
 
 ```bash
+# Using Make (recommended)
+make test
+
+# Or directly
 bash tests.sh
-# Or use the launcher:
+bash tests_prompt_eval.sh
+
+# Or using the launcher
 bash termux-ai test
+```
+
+### Code Quality
+
+Run all quality checks before committing:
+
+```bash
+# Full check (lint + test + secrets scan)
+make dev-check
+
+# Or use the helper script
+bash scripts/dev_check.sh
+```
+
+The checks will:
+1. Run shellcheck on all scripts
+2. Run complete test suite
+3. Check for hardcoded secrets
+4. Verify all scripts are executable
+
+### Pre-commit Hook (Optional)
+
+Install automatic checks:
+
+```bash
+ln -s ../../scripts/pre-commit-hook.sh .git/hooks/pre-commit
 ```
 
 ### Contributing
@@ -388,8 +569,9 @@ bash termux-ai test
 Contributions are welcome! Please:
 1. Fork the repository
 2. Create a feature branch
-3. Add tests for new features
-4. Ensure all tests pass
+3. Run `make dev-check` before committing
+4. Add tests for new features
+5. Ensure all tests pass
 5. Submit a pull request
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
