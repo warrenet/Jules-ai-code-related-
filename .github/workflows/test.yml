@@ -13,12 +13,14 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y curl jq
+          # Try to install kcov, but don't fail if unavailable (not in Ubuntu 24.04 repos)
+          sudo apt-get install -y kcov || echo "kcov not available, skipping coverage collection"
 
       - name: Make scripts executable
         run: chmod +x *.sh
@@ -28,8 +30,20 @@ jobs:
           # This should fail without API keys, which is expected
           bash 00_check_env.sh || echo "Environment check failed as expected (no API keys in CI)"
 
-      - name: Run test suite
-        run: bash tests.sh
+      - name: Run test suite with coverage
+        run: |
+          # Run tests with kcov for coverage if available
+          if command -v kcov &> /dev/null; then
+            echo "Running tests with kcov coverage collection..."
+            mkdir -p coverage
+            kcov --exclude-pattern=/usr/include coverage bash tests.sh || true
+            echo "Coverage collection completed"
+          else
+            echo "kcov not available, running tests without coverage collection..."
+          fi
+          
+          # Always run tests normally to ensure they pass
+          bash tests.sh
 
       - name: Verify all scripts are executable
         run: |
@@ -41,14 +55,12 @@ jobs:
           done
           echo "All scripts are executable"
 
-      - name: Check for shellcheck warnings (if available)
+      - name: Run shellcheck (enforced)
         run: |
-          if command -v shellcheck &> /dev/null; then
-            shellcheck *.sh || echo "Shellcheck warnings found (non-fatal)"
-          else
-            echo "Shellcheck not available, skipping"
-          fi
-        continue-on-error: true
+          # ShellCheck is pre-installed on ubuntu-latest
+          echo "Running shellcheck on all scripts..."
+          shellcheck *.sh agents/*.sh
+          echo "✓ ShellCheck passed"
 
       - name: Verify installer script structure
         run: |
@@ -60,13 +72,33 @@ jobs:
           grep -q "00_check_env.sh" install_toolkit.sh || exit 1
           echo "Installer script contains all expected components"
 
+      - name: Generate coverage report
+        run: |
+          if [ -d coverage ]; then
+            echo "Coverage report generated in coverage/"
+            # Check if we have reasonable coverage (informational for now)
+            if command -v kcov &> /dev/null; then
+              echo "Coverage collection is enabled"
+              # Note: We don't enforce coverage thresholds yet
+              # Target is 85% but we'll measure first
+            fi
+          fi
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 30
+
   lint:
     name: Lint Markdown Files
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Check for broken links in README
         run: |
@@ -87,7 +119,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Check for hardcoded secrets
         run: |

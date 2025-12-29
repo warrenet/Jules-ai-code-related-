@@ -1,0 +1,115 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: ["main"]
+  # Allows manual trigger from Actions tab
+  workflow_dispatch:
+
+# Sets permissions for GitHub Pages deployment
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  detect-static-assets:
+    name: Detect Static Assets
+    runs-on: ubuntu-latest
+    outputs:
+      has-static-site: ${{ steps.check.outputs.has-static-site }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Check for static site assets
+        id: check
+        run: |
+          # Check for index.html or common static site patterns
+          if [ -f "index.html" ] || [ -d "site" ] || [ -d "public" ] || [ -d "dist" ]; then
+            echo "has-static-site=true" >> $GITHUB_OUTPUT
+            echo "✓ Static site assets detected"
+          else
+            echo "has-static-site=false" >> $GITHUB_OUTPUT
+            echo "ℹ No static site assets found"
+          fi
+
+  deploy:
+    name: Deploy to Pages
+    needs: detect-static-assets
+    if: needs.detect-static-assets.outputs.has-static-site == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Prepare deployment directory
+        run: |
+          mkdir -p _site
+          # Copy static assets to deployment directory
+          if [ -f "index.html" ]; then
+            cp index.html _site/
+          fi
+          if [ -f "script.js" ]; then
+            cp script.js _site/
+          fi
+          # Copy any other static assets
+          if [ -d "assets" ]; then
+            cp -r assets _site/
+          fi
+          if [ -d "css" ]; then
+            cp -r css _site/
+          fi
+          if [ -d "js" ]; then
+            cp -r js _site/
+          fi
+          if [ -d "images" ]; then
+            cp -r images _site/
+          fi
+          if [ -d "img" ]; then
+            cp -r img _site/
+          fi
+          # If site/public/dist directories exist, use those
+          if [ -d "site" ]; then
+            cp -r site/* _site/
+          fi
+          if [ -d "public" ]; then
+            cp -r public/* _site/
+          fi
+          if [ -d "dist" ]; then
+            cp -r dist/* _site/
+          fi
+          echo "Deployment directory contents:"
+          ls -la _site/
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: '_site'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  skip-deployment:
+    name: Skip Deployment
+    needs: detect-static-assets
+    if: needs.detect-static-assets.outputs.has-static-site == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - name: No static assets found
+        run: |
+          echo "ℹ️  No static site assets detected in this repository."
+          echo "This workflow will only deploy when static files (index.html, site/, public/, or dist/) are present."
+          echo "To enable GitHub Pages deployment, add static site files to the repository."
