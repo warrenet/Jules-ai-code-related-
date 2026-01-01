@@ -9,7 +9,8 @@ This guide covers deploying and running the Termux AI Toolkit in various environ
 3. [GitHub Codespaces](#github-codespaces)
 4. [Development Environment](#development-environment)
 5. [CI/CD Pipeline](#cicd-pipeline)
-6. [Troubleshooting](#troubleshooting)
+6. [Releases](#releases)
+7. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -374,6 +375,38 @@ make test
 # Or run the CI script directly
 bash scripts/dev_check.sh
 ```
+
+---
+
+## Releases
+
+Follow this checklist before cutting a release to ensure consistency and quality:
+
+1. **Bump the version**
+   - Update `package.json` and any release scripts to the new semantic version.
+   - Confirm change logs or release notes reflect the new version.
+
+2. **Run quality checks locally**
+   - `make test` — ensure the full suite passes.
+   - `make lint` — verify all scripts pass linting.
+
+3. **Validate installer integrity**
+   - Execute `bash install_toolkit.sh` in a clean environment (or container) and confirm the toolkit installs and runs `00_check_env.sh` successfully.
+
+4. **Prepare Git tags and GitHub Release**
+   - Create an annotated tag matching the bumped version (e.g., `git tag -a v1.2.0 -m "Release v1.2.0"`).
+   - Push tags (`git push origin --tags`).
+   - Draft a GitHub Release that links the new tag and includes highlights, breaking changes, and installation notes.
+
+5. **Verify GitHub Codespaces setup**
+   - Launch a Codespace from the target branch.
+   - Confirm the devcontainer completes setup without errors and `make dev-check` (or at least `make test`/`make lint`) succeeds inside the Codespace.
+
+6. **Publish and monitor**
+   - Publish the GitHub Release.
+   - Monitor initial installs (especially via `install_toolkit.sh`) for issues and update release notes if hotfixes are needed.
+
+This checklist pairs with the automated release workflow (`.github/workflows/release.yml`); use it to catch issues early and ensure releases remain reproducible.
 
 ---
 
