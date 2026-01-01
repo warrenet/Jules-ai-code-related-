@@ -105,8 +105,8 @@ For Android users:
 Advanced users can still use local Termux:
 ```bash
 # Clone repo
-git clone https://github.com/warrenet/Jules-ai-code-related-.git
-cd Jules-ai-code-related-
+git clone https://github.com/warrenet/termux-ai-toolkit.git
+cd termux-ai-toolkit
 
 # Install dependencies
 pkg install curl jq git

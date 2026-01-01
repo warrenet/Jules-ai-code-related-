@@ -1,10 +1,10 @@
 # Termux AI Toolkit
 
-[![CI Tests](https://github.com/warrenet/Jules-ai-code-related-/actions/workflows/test.yml/badge.svg)](https://github.com/warrenet/Jules-ai-code-related-/actions/workflows/test.yml)
-[![CodeQL](https://github.com/warrenet/Jules-ai-code-related-/actions/workflows/codeql.yml/badge.svg)](https://github.com/warrenet/Jules-ai-code-related-/actions/workflows/codeql.yml)
-[![GitHub Pages](https://github.com/warrenet/Jules-ai-code-related-/actions/workflows/deploy.yml/badge.svg)](https://github.com/warrenet/Jules-ai-code-related-/actions/workflows/deploy.yml)
+[![CI Tests](https://github.com/warrenet/termux-ai-toolkit/actions/workflows/test.yml/badge.svg)](https://github.com/warrenet/termux-ai-toolkit/actions/workflows/test.yml)
+[![CodeQL](https://github.com/warrenet/termux-ai-toolkit/actions/workflows/codeql.yml/badge.svg)](https://github.com/warrenet/termux-ai-toolkit/actions/workflows/codeql.yml)
+[![GitHub Pages](https://github.com/warrenet/termux-ai-toolkit/actions/workflows/deploy.yml/badge.svg)](https://github.com/warrenet/termux-ai-toolkit/actions/workflows/deploy.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/warrenet/Jules-ai-code-related-)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/warrenet/termux-ai-toolkit)
 
 > Bring powerful AI capabilities to your Android device with simple, safe, and privacy-focused Bash scripts.
 
@@ -32,7 +32,7 @@ A suite of Bash scripts for Android/Termux that bring AI capabilities to your mo
 
 ### 2. 🎨 Agent Builder Web Application
 A browser-based visual tool for creating AI agent prompts:
-- **[🌐 Try Live Demo](https://warrenet.github.io/Jules-ai-code-related-)** - No installation required!
+- **[🌐 Try Live Demo](https://warrenet.github.io/termux-ai-toolkit)** - No installation required!
 - **`index.html`** + **`script.js`** - Interactive drag-and-drop agent builder
 - Design complex AI agent workflows visually
 - Export and share agent configurations
@@ -89,14 +89,14 @@ You'll need:
 Run this command in Termux to download and execute the installer:
 
 ```bash
-curl -sL https://raw.githubusercontent.com/warrenet/Jules-ai-code-related-/main/install_toolkit.sh | bash
+curl -sL https://raw.githubusercontent.com/warrenet/termux-ai-toolkit/main/install_toolkit.sh | bash
 ```
 
 #### Option 2: Clone from GitHub
 
 ```bash
 # Clone the repository
-git clone https://github.com/warrenet/Jules-ai-code-related-.git ~/termux-ai-toolkit
+git clone https://github.com/warrenet/termux-ai-toolkit.git ~/termux-ai-toolkit
 
 # Navigate to the directory
 cd ~/termux-ai-toolkit
@@ -367,7 +367,7 @@ The Agent Builder is a visual, browser-based tool for designing AI agent prompts
 ### Quick Start
 
 1. **Try the Live Demo**:
-   - 🌐 **[Open Agent Builder](https://warrenet.github.io/Jules-ai-code-related-)** (GitHub Pages)
+   - 🌐 **[Open Agent Builder](https://warrenet.github.io/termux-ai-toolkit)** (GitHub Pages)
    - No installation required - works directly in your browser
    - All data stored locally in your browser (privacy-first)
 
@@ -470,8 +470,8 @@ Perfect for:
 
 ```bash
 # Clone and setup
-git clone https://github.com/warrenet/Jules-ai-code-related-.git
-cd Jules-ai-code-related-
+git clone https://github.com/warrenet/termux-ai-toolkit.git
+cd termux-ai-toolkit
 make install
 
 # Run quality checks
@@ -488,8 +488,8 @@ make test
 pkg install git curl jq shellcheck
 
 # Clone and run
-git clone https://github.com/warrenet/Jules-ai-code-related-.git
-cd Jules-ai-code-related-
+git clone https://github.com/warrenet/termux-ai-toolkit.git
+cd termux-ai-toolkit
 make test
 ```
 

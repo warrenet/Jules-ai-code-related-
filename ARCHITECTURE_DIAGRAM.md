@@ -129,7 +129,7 @@ User               Hook                Claude              Skill               P
 ## File Structure
 
 ```
-Jules-ai-code-related-/
+termux-ai-toolkit/
 ├── ai_cli.sh                      # Main CLI (modified)
 │   └── [Prompt Evaluation Hook]   # Lines 271-340
 │
