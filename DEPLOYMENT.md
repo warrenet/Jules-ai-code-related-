@@ -377,6 +377,34 @@ bash scripts/dev_check.sh
 
 ---
 
+## Vercel Hosting
+
+Vercel is configured to deploy the static Agent Builder directly from the repository root using `index.html` as the entry point.
+
+### Project Settings
+
+- **Project root**: Repository root (no framework preset).
+- **Build command**: _None_ (static export only).
+- **Output directory**: `.` (serve files from the root of the repository).
+- **Vercel config**: `vercel.json` pins the static build with `@vercel/static` for `index.html`.
+
+### Environment Variables (set in Vercel Dashboard)
+
+Add these to both **Preview** and **Production** environments so Firebase-backed features can run without code changes:
+
+- `FIREBASE_API_KEY`
+- `FIREBASE_AUTH_DOMAIN`
+- `FIREBASE_PROJECT_ID`
+- Optional: `FIREBASE_STORAGE_BUCKET`, `FIREBASE_MESSAGING_SENDER_ID`, `FIREBASE_APP_ID`, `FIREBASE_MEASUREMENT_ID`
+
+### GitHub Integration & Preview Deployments
+
+1. Connect the repository to Vercel with GitHub enabled for automatic preview deployments on pull requests.
+2. Ensure preview deployments stay static (no build command) and reuse the root output directory.
+3. Preview URLs will appear under the project domain, e.g. `https://jules-ai-code-related.vercel.app` for the default environment and `https://jules-ai-code-related-git-<branch>.vercel.app` for PR previews. Document the preview link in PR descriptions to aid reviewers.
+
+---
+
 ## Troubleshooting
 
 ### Common Issues
