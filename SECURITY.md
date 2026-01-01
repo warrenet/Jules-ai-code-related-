@@ -18,7 +18,7 @@ We take security seriously. If you discover a security vulnerability, please rep
 
 ### Preferred Method: GitHub Security Advisories
 
-1. Go to the [Security tab](https://github.com/warrenet/Jules-ai-code-related-/security/advisories)
+1. Go to the [Security tab](https://github.com/warrenet/termux-ai-toolkit/security/advisories)
 2. Click "Report a vulnerability"
 3. Fill out the form with:
    - Description of the vulnerability
@@ -95,10 +95,10 @@ Before running scripts, especially `install_toolkit.sh`, you can verify their in
 
 ```bash
 # View the script content first
-curl -sL https://raw.githubusercontent.com/warrenet/Jules-ai-code-related-/main/install_toolkit.sh | less
+curl -sL https://raw.githubusercontent.com/warrenet/termux-ai-toolkit/main/install_toolkit.sh | less
 
 # Or download and inspect before running
-curl -sL https://raw.githubusercontent.com/warrenet/Jules-ai-code-related-/main/install_toolkit.sh > install_toolkit.sh
+curl -sL https://raw.githubusercontent.com/warrenet/termux-ai-toolkit/main/install_toolkit.sh > install_toolkit.sh
 less install_toolkit.sh
 bash install_toolkit.sh
 ```

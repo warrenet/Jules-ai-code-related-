@@ -62,7 +62,7 @@ The Multi-Agent AI Workflow System is an advanced framework that coordinates spe
 
 ```bash
 # Clone or navigate to the repository
-cd /path/to/Jules-ai-code-related-
+cd /path/to/termux-ai-toolkit
 
 # The agents directory is already included
 cd agents
@@ -369,7 +369,7 @@ bash agents/performance_auditor.sh report task_id
 **Issue**: Agent script not found
 ```bash
 # Ensure you're in the correct directory
-cd /path/to/Jules-ai-code-related-/agents
+cd /path/to/termux-ai-toolkit/agents
 # Make scripts executable
 chmod +x *.sh
 ```

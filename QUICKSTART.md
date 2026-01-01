@@ -12,7 +12,7 @@ Get started with the Termux AI Toolkit in 5 minutes or less!
 
 2. **Run the installer**:
    ```bash
-   curl -sL https://raw.githubusercontent.com/warrenet/Jules-ai-code-related-/main/install_toolkit.sh | bash
+   curl -sL https://raw.githubusercontent.com/warrenet/termux-ai-toolkit/main/install_toolkit.sh | bash
    cd ~/termux-ai-toolkit
    ```
 
@@ -52,8 +52,8 @@ Get started with the Termux AI Toolkit in 5 minutes or less!
 
 1. **Clone or download this repository**:
    ```bash
-   git clone https://github.com/warrenet/Jules-ai-code-related-.git
-   cd Jules-ai-code-related-
+   git clone https://github.com/warrenet/termux-ai-toolkit.git
+   cd termux-ai-toolkit
    ```
 
 2. **Open the Agent Builder**:
@@ -101,6 +101,6 @@ DRY_RUN=0 bash ai_cli.sh -p "Your prompt"
 - 📖 Read the [full README](README.md) for all features
 - 📚 Check [README_first.md](README_first.md) for detailed usage
 - 🤝 See [CONTRIBUTING.md](CONTRIBUTING.md) to contribute
-- 🐛 Report issues on [GitHub](https://github.com/warrenet/Jules-ai-code-related-/issues)
+- 🐛 Report issues on [GitHub](https://github.com/warrenet/termux-ai-toolkit/issues)
 
 **Happy AI-ing!** 🚀

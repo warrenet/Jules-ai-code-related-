@@ -21,7 +21,7 @@ The fastest way to get started depends on your platform:
 
 ```bash
 # Install from GitHub
-curl -sL https://raw.githubusercontent.com/warrenet/Jules-ai-code-related-/main/install_toolkit.sh | bash
+curl -sL https://raw.githubusercontent.com/warrenet/termux-ai-toolkit/main/install_toolkit.sh | bash
 
 # Configure API key
 mkdir -p ~/.config/termux-ai
@@ -36,8 +36,8 @@ bash termux-ai ask -p "Hello, AI!"
 
 ```bash
 # Clone repository
-git clone https://github.com/warrenet/Jules-ai-code-related-.git
-cd Jules-ai-code-related-
+git clone https://github.com/warrenet/termux-ai-toolkit.git
+cd termux-ai-toolkit
 
 # Install dependencies
 make install
@@ -56,7 +56,7 @@ bash termux-ai --help
 
 ### In GitHub Codespaces (Recommended for Development)
 
-1. Go to https://github.com/warrenet/Jules-ai-code-related-
+1. Go to https://github.com/warrenet/termux-ai-toolkit
 2. Click "Code" → "Codespaces" → "Create codespace on main"
 3. Wait ~2 minutes for environment setup
 4. Everything is pre-configured and ready!
@@ -80,7 +80,7 @@ bash termux-ai --help
 #### Option 1: One-Line Install (Recommended)
 
 ```bash
-curl -sL https://raw.githubusercontent.com/warrenet/Jules-ai-code-related-/main/install_toolkit.sh | bash
+curl -sL https://raw.githubusercontent.com/warrenet/termux-ai-toolkit/main/install_toolkit.sh | bash
 ```
 
 This script:
@@ -97,7 +97,7 @@ This script:
 pkg install curl jq git
 
 # Clone repository
-git clone https://github.com/warrenet/Jules-ai-code-related-.git ~/termux-ai-toolkit
+git clone https://github.com/warrenet/termux-ai-toolkit.git ~/termux-ai-toolkit
 cd ~/termux-ai-toolkit
 
 # Make scripts executable
@@ -178,7 +178,7 @@ See [optional_widget_setup.md](optional_widget_setup.md) for widget configuratio
 ### Creating a Codespace
 
 1. **From Desktop/Mobile Browser**:
-   - Go to repository: https://github.com/warrenet/Jules-ai-code-related-
+   - Go to repository: https://github.com/warrenet/termux-ai-toolkit
    - Click green "Code" button
    - Select "Codespaces" tab
    - Click "Create codespace on main"
@@ -244,8 +244,8 @@ Tips to stay free:
 
 ```bash
 # Clone repository
-git clone https://github.com/warrenet/Jules-ai-code-related-.git
-cd Jules-ai-code-related-
+git clone https://github.com/warrenet/termux-ai-toolkit.git
+cd termux-ai-toolkit
 
 # Install dependencies
 make install

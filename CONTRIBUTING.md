@@ -23,12 +23,12 @@ This project and everyone participating in it is governed by our [Code of Conduc
 1. Fork the repository on GitHub
 2. Clone your fork locally:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/Jules-ai-code-related-.git
-   cd Jules-ai-code-related-
+   git clone https://github.com/YOUR_USERNAME/termux-ai-toolkit.git
+   cd termux-ai-toolkit
    ```
 3. Add the upstream repository:
    ```bash
-   git remote add upstream https://github.com/warrenet/Jules-ai-code-related-.git
+   git remote add upstream https://github.com/warrenet/termux-ai-toolkit.git
    ```
 4. Create a branch for your changes:
    ```bash
@@ -105,7 +105,7 @@ We welcome several types of contributions:
 
 ### Before You Start
 
-1. Check the [issue tracker](https://github.com/warrenet/Jules-ai-code-related-/issues) to see if someone else is already working on it
+1. Check the [issue tracker](https://github.com/warrenet/termux-ai-toolkit/issues) to see if someone else is already working on it
 2. For major changes, open an issue first to discuss your approach
 3. For minor fixes (typos, small bugs), feel free to submit a PR directly
 
